@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
 using Celeste;
 using Celeste.Mod;
 using Microsoft.Xna.Framework;
-using Mono.Cecil.Cil;
 using Monocle;
-using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 
 public class GravityComponent : Component
@@ -14,7 +11,6 @@ public class GravityComponent : Component
 	public Vector2 origin;
 	public bool track;
 	static Hook hook_ColliderSet;
-	static ILHook hook_orig_Update;
     public GravityComponent(bool active, bool visible) : base(active, visible)
     {
     }
@@ -28,6 +24,12 @@ public class GravityComponent : Component
     {
 		track = true;
 		origin = Entity.Position;
+		if(Entity is Player player) {
+			var move = new Vector2(Input.MoveX, Input.MoveY).Rotate(-angle);
+			Input.MoveX.Value = (int)move.X;
+			Input.MoveY.Value = (int)move.Y;
+			Input.Aim.Value = Input.GetAimVector().Rotate(-angle);
+		}
     }
 	private void PostUpdate(Entity entity) {
 		track = false;
@@ -60,39 +62,13 @@ public class GravityComponent : Component
 			typeof(Entity).GetProperty("Collider").GetSetMethod(),
 			typeof(GravityComponent).GetMethod("ColliderSet")
 		);
-		hook_orig_Update = new ILHook(typeof(Player).GetMethod("orig_Update"), ColliderFixHook);
 		On.Monocle.Collider.Collide_Collider += OnCollideCollider;
 	}
     public static void RemoveHooks() {
 		On.Monocle.Collider.Collide_Collider -= OnCollideCollider;
 		hook_ColliderSet?.Dispose();
-		hook_orig_Update?.Dispose();
 	}
-	private static void CollideFix(Player player, Collider tmp) {
-		player.Collider = tmp;
-	}
-    private static void ColliderFixHook(ILContext il)
-    {
-		var cursor = new ILCursor(il);		
-		Logger.Log(LogLevel.Info, "GHGV", "Starting hook");
-		var bounds = cursor.TryGotoNext(
-			i => i.MatchCallvirt<Level>("EnforceBounds")
-		);
-		if(bounds) {
-			Logger.Log(LogLevel.Info, "GHGV", "Reached bounds check");
-			var match = cursor.TryGotoPrev(
-				MoveType.After,
-				i => i.MatchCall(typeof(Entity).GetProperty("Collider").GetSetMethod())
-			);
-			if(match) {
-				cursor.MoveAfterLabels();
-				cursor.Emit(OpCodes.Ldarg_0);
-				cursor.Emit(OpCodes.Ldloc, 14);
-				cursor.EmitDelegate(CollideFix);
-			}
-		}
-    }
-    private static bool OnCollideCollider(On.Monocle.Collider.orig_Collide_Collider orig, Collider self, Collider collider)
+	private static bool OnCollideCollider(On.Monocle.Collider.orig_Collide_Collider orig, Collider self, Collider collider)
     {
 		try {
 			return orig(self, collider);

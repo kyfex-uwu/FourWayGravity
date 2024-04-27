@@ -27,6 +27,8 @@ public class GravityHelperGVModule : EverestModule {
 
     public override void Load() {
         GravityComponent.SetHooks();
+        ControlHooks.Load();
+        PlayerHooks.Load();
         On.Celeste.Player.DashEnd += SwitchGrav;
     }
 
@@ -41,6 +43,8 @@ public class GravityHelperGVModule : EverestModule {
 
     public override void Unload() {
         On.Celeste.Player.DashEnd -= SwitchGrav;
+        PlayerHooks.Unload();
+        ControlHooks.Unload();
         GravityComponent.RemoveHooks();
     }
 }
