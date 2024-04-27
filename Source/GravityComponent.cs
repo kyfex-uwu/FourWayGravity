@@ -87,7 +87,7 @@ public class TransformCollider : Collider {
 	public Hitbox source;
 	public Hitbox hitbox;
 	public Vector2 offset;
-	GravityComponent gravity;
+	public GravityComponent gravity;
     public override float Width { get => hitbox.Width; set => hitbox.Width = value; }
     public override float Height { get => hitbox.Height; set => hitbox.Height = value; }
     public override float Top { 
