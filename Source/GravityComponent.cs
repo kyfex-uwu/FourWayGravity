@@ -10,7 +10,7 @@ using MonoMod.RuntimeDetour;
 
 public class GravityComponent : Component
 {
-	public float angle = 0f;
+	public float angle = -(float)Math.PI / 2f;
 	public Vector2 origin;
 	public bool track;
 	static Hook hook_ColliderSet;
@@ -60,41 +60,35 @@ public class GravityComponent : Component
 			typeof(Entity).GetProperty("Collider").GetSetMethod(),
 			typeof(GravityComponent).GetMethod("ColliderSet")
 		);
-		hook_orig_Update = new ILHook(typeof(Player).GetMethod("orig_Update"), ColliderCheckHook);
+		hook_orig_Update = new ILHook(typeof(Player).GetMethod("orig_Update"), ColliderFixHook);
 		On.Monocle.Collider.Collide_Collider += OnCollideCollider;
 	}
     public static void RemoveHooks() {
 		On.Monocle.Collider.Collide_Collider -= OnCollideCollider;
-		IL.Celeste.Player.Update -= ColliderCheckHook;
 		hook_ColliderSet?.Dispose();
 		hook_orig_Update?.Dispose();
 	}
 	private static void CollideFix(Player player, Collider tmp) {
-		Logger.Log(LogLevel.Info, "GHGV", "yay yippee");
-		if(player.Collider is TransformCollider collider) {
-			if(collider.source == player.hurtbox) {
-				player.Collider = tmp;
-			}
-		}
+		player.Collider = tmp;
 	}
-    private static void ColliderCheckHook(ILContext il)
+    private static void ColliderFixHook(ILContext il)
     {
-		var cursor = new ILCursor(il);
+		var cursor = new ILCursor(il);		
 		Logger.Log(LogLevel.Info, "GHGV", "Starting hook");
 		var bounds = cursor.TryGotoNext(
-			i => i.MatchCallvirt(typeof(Level).GetMethod("EnforceBounds"))
+			i => i.MatchCallvirt<Level>("EnforceBounds")
 		);
 		if(bounds) {
 			Logger.Log(LogLevel.Info, "GHGV", "Reached bounds check");
 			var match = cursor.TryGotoPrev(
 				MoveType.After,
-				i => i.MatchEndfinally()
+				i => i.MatchCall(typeof(Entity).GetProperty("Collider").GetSetMethod())
 			);
 			if(match) {
-				Logger.Log(LogLevel.Info, "GHGV", "Destination");
+				cursor.MoveAfterLabels();
 				cursor.Emit(OpCodes.Ldarg_0);
 				cursor.Emit(OpCodes.Ldloc, 14);
-				cursor.EmitDelegate<Action<Player, Collider>>(CollideFix);
+				cursor.EmitDelegate(CollideFix);
 			}
 		}
     }
