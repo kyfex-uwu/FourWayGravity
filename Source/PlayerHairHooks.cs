@@ -33,7 +33,7 @@ public class PlayerHairHooks {
 		hair.Nodes[0] = hair.Sprite.RenderPosition;
 		var offset = Vector2.UnitY * -9f * hair.Sprite.Scale.Y + vector;
 		if(hair.Entity.Collider is TransformCollider collider) {
-			hair.Nodes[0] += offset.Rotate(collider.gravity.angle);
+			hair.Nodes[0] += offset.Rotate(collider.gravity.gravity);
 		} else {
 			hair.Nodes[0] += offset;
 		}
@@ -63,7 +63,7 @@ public class PlayerHairHooks {
     }
 	private static float GetAngle(PlayerHair hair) {
 		if(hair.Sprite.Entity.Collider is TransformCollider collider) {
-			return collider.gravity.angle;
+			return collider.gravity.gravity.Angle();
 		}
 		return 0f;
 	}

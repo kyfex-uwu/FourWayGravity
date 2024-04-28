@@ -7,7 +7,7 @@ using MonoMod.RuntimeDetour;
 
 public class GravityComponent : Component
 {
-	public float angle = -(float)Math.PI / 2f;
+	public Gravity gravity = Gravity.Right;
 	public Vector2 origin;
 	public bool track;
 	static Hook hook_ColliderSet;
@@ -25,29 +25,37 @@ public class GravityComponent : Component
 		track = true;
 		origin = Entity.Position;
 		if(Entity is Player player) {
-			var move = new Vector2(Input.MoveX, Input.MoveY).Rotate(-angle).Round();
+			var move = new Vector2(Input.MoveX, Input.MoveY).Rotate(gravity.Inv()).Round();
 			Input.MoveX.Value = (int)move.X;
 			Input.MoveY.Value = (int)move.Y;
-			Input.Aim.Value = Input.GetAimVector().Rotate(-angle);
+			Input.Aim.Value = Input.GetAimVector().Rotate(gravity.Inv());
 		}
     }
 	private void PostUpdate(Entity entity) {
 		track = false;
 		var dif = entity.Position - origin;
-		var dest = origin + dif.Rotate(angle);
+		var dest = origin + dif.Rotate(gravity);
 		entity.Position = dest;
 	}
 	public override void Removed(Entity entity) {
 		
 	}
 	public override void DebugRender(Camera camera) {
+		if(Entity is Player player) {
+			foreach(var e in Scene.Tracker.GetEntities<Solid>()) {
+				var solid = (Solid)e;
+				if(player.IsRiding(solid) && solid is not SolidTiles) {
+					Draw.Rect(e.X, e.Y, e.Width, e.Height, Color.Yellow);
+				}
+			}
+		}
 	}
 	public delegate void orig_ColliderSet(Entity self, Collider collider);
 	public static void ColliderSet(orig_ColliderSet orig, Entity self, Collider collider) {
 		var gravity = self.Components.Get<GravityComponent>();
 		if(collider is Hitbox box && box != null && gravity != null) {
-			var corner1 = box.TopLeft.Rotate(gravity.angle);
-			var corner2 = box.BottomRight.Rotate(gravity.angle);
+			var corner1 = box.TopLeft.Rotate(gravity.gravity);
+			var corner2 = box.BottomRight.Rotate(gravity.gravity);
 			var max = Vector2.Max(corner1, corner2);
 			var min = Vector2.Min(corner1, corner2);
 			var rotated = new Hitbox(max.X - min.X, max.Y - min.Y, min.X, min.Y);  
@@ -128,7 +136,7 @@ public class TransformCollider : Collider {
 		hitbox.Position = offset;
 		if(!gravity.track) return;
 		var dif = Entity.Position - gravity.origin;
-		hitbox.Position += -dif + dif.Rotate(gravity.angle);
+		hitbox.Position += -dif + dif.Rotate(gravity.gravity);
 	}
     public override Collider Clone()
     {
@@ -178,3 +186,7 @@ public class TransformCollider : Collider {
 		Draw.HollowRect(hitbox.AbsoluteX, hitbox.AbsoluteY, hitbox.Width, hitbox.Height, Color.Red);
     }
 }
+public enum Gravity {
+	Up, Down, Left, Right
+}
+

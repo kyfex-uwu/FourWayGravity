@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Celeste;
 using Celeste.Mod;
 using Microsoft.Xna.Framework;
@@ -20,6 +21,7 @@ public class PlayerHooks {
 		On.Celeste.Player.TransitionTo += TransitionFix;
 		On.Celeste.Player.Render += RotateSprite;
 		On.Celeste.Player.SlipCheck += SlipCheckFix;
+		IL.Celeste.Player.ClimbCheck += PointCheckHook;
 	}
     public static void Unload() {
 		hook_orig_Update?.Dispose();
@@ -28,16 +30,40 @@ public class PlayerHooks {
 		On.Celeste.Player.TransitionTo -= TransitionFix;
 		On.Celeste.Player.Render -= RotateSprite;
 		On.Celeste.Player.SlipCheck -= SlipCheckFix;
+		IL.Celeste.Player.ClimbCheck -= PointCheckHook;
+	}
+	public static Vector2 PointCheckCorrection(Vector2 point, Player player) {
+		if(player.Collider is TransformCollider collider) {
+			return (point - player.Position).Rotate(collider.gravity.gravity) + player.Position;
+		}
+		return point;
+	}
+	private static void PointCheckHook(ILContext il) {
+		var cursor = new ILCursor(il);
+		var method = typeof(Level)
+			.GetMethod("CollideCheck", new Type[] { typeof(Vector2) })
+			.MakeGenericMethod(new Type[] { typeof(Solid) });
+		Logger.Log(LogLevel.Info, "GHGV", $"{method}");
+		while(cursor.TryGotoNext(
+			MoveType.Before,
+			i => i.MatchCallvirt(method)
+		)) {
+			Logger.Log(LogLevel.Info, "GHGV", "Patched");
+			cursor.EmitLdarg0();
+			cursor.EmitDelegate(PointCheckCorrection);
+			cursor.TryGotoNext(
+				MoveType.Before,
+				i => i.MatchCallvirt(method)
+			);
+		}
 	}
 	private static void ColliderFixHook(ILContext il)
     {
 		var cursor = new ILCursor(il);		
-		Logger.Log(LogLevel.Info, "GHGV", "Starting hook");
 		var bounds = cursor.TryGotoNext(
 			i => i.MatchCallvirt<Level>("EnforceBounds")
 		);
 		if(bounds) {
-			Logger.Log(LogLevel.Info, "GHGV", "Reached bounds check");
 			var match = cursor.TryGotoPrev(
 				MoveType.After,
 				i => i.MatchCall(typeof(Entity).GetProperty("Collider").GetSetMethod())
@@ -69,7 +95,7 @@ public class PlayerHooks {
     private static void LiftSpeed_set_fix(orig_LiftSpeed_set orig, Player self, Vector2 value)
     {
 		if(self.Collider is TransformCollider collider) {
-			orig(self, value.Rotate(-collider.gravity.angle));
+			orig(self, value.Rotate(collider.gravity.gravity.Inv()));
 		} else {
 			orig(self, value);
 		}
@@ -78,7 +104,7 @@ public class PlayerHooks {
     private static void RotateSprite(On.Celeste.Player.orig_Render orig, Player self)
     {
 		if(self.Collider is TransformCollider collider) {
-			self.Sprite.Rotation = collider.gravity.angle;
+			self.Sprite.Rotation = collider.gravity.gravity.Angle();
 		}
 		orig(self);
     }
@@ -87,10 +113,10 @@ public class PlayerHooks {
 		if(self.Collider is TransformCollider collider) {
 			var height = 11f;
 			Vector2 v = -Vector2.UnitY * (height - 4f + addY) + Vector2.UnitX * 5f * (int)self.Facing;
-			if (!self.Scene.CollideCheck<Solid>(self.Position + v.Rotate(collider.gravity.angle)))
+			if (!self.Scene.CollideCheck<Solid>(self.Position + v.Rotate(collider.gravity.gravity)))
 			{
 				var offset = Vector2.UnitY * (-4f + addY);
-				return !self.Scene.CollideCheck<Solid>(self.Position + (v + offset).Rotate(collider.gravity.angle));
+				return !self.Scene.CollideCheck<Solid>(self.Position + (v + offset).Rotate(collider.gravity.gravity));
 			}
 			return false;
 		} else {
