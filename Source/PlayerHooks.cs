@@ -18,12 +18,16 @@ public class PlayerHooks {
 		hook_Ducking_get = new Hook(typeof(Player).GetProperty("Ducking").GetGetMethod(), Ducking_get_fix);
 		hook_LiftSpeed_set = new Hook(typeof(Player).GetProperty("LiftSpeed").GetSetMethod(), LiftSpeed_set_fix);
 		On.Celeste.Player.TransitionTo += TransitionFix;
+		On.Celeste.Player.Render += RotateSprite;
 	}
+
+
     public static void Unload() {
 		hook_orig_Update?.Dispose();
 		hook_Ducking_get?.Dispose();
 		hook_LiftSpeed_set?.Dispose();
 		On.Celeste.Player.TransitionTo -= TransitionFix;
+		On.Celeste.Player.Render -= RotateSprite;
 	}
 	private static void ColliderFixHook(ILContext il)
     {
@@ -71,4 +75,11 @@ public class PlayerHooks {
 		}
     }
 
+    private static void RotateSprite(On.Celeste.Player.orig_Render orig, Player self)
+    {
+		if(self.Collider is TransformCollider collider) {
+			self.Sprite.Rotation = collider.gravity.angle;
+		}
+		orig(self);
+    }
 }

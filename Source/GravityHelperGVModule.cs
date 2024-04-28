@@ -30,6 +30,7 @@ public class GravityHelperGVModule : EverestModule {
         ControlHooks.Load();
         PlayerHooks.Load();
         SolidHooks.Load();
+        PlayerHairHooks.Load();
         On.Celeste.Player.DashEnd += SwitchGrav;
     }
 
@@ -48,5 +49,6 @@ public class GravityHelperGVModule : EverestModule {
         SolidHooks.Unload();
         ControlHooks.Unload();
         GravityComponent.RemoveHooks();
+        PlayerHairHooks.Unload();
     }
 }
