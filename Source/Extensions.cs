@@ -5,7 +5,7 @@ public static class Extensions {
 	public static Vector2 Rotate(this Vector2 v, Gravity gravity) {
 		return gravity switch {
 			Gravity.Left => new Vector2(-v.Y, v.X),
-			Gravity.Up => new Vector2(v.X, -v.Y),
+			Gravity.Up => new Vector2(-v.X, -v.Y),
 			Gravity.Right => new Vector2(v.Y, -v.X),
 			_ => v
 		};

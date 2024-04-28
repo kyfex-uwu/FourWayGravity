@@ -40,6 +40,7 @@ public class GravityComponent : Component
 		var dif = entity.Position - origin;
 		var dest = origin + dif.Rotate(gravity);
 		entity.Position = dest;
+		origin = Entity.Position;
 	}
 	public override void Removed(Entity entity) {
 		
