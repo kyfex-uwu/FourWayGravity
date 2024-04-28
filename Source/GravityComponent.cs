@@ -25,7 +25,7 @@ public class GravityComponent : Component
 		track = true;
 		origin = Entity.Position;
 		if(Entity is Player player) {
-			var move = new Vector2(Input.MoveX, Input.MoveY).Rotate(-angle);
+			var move = new Vector2(Input.MoveX, Input.MoveY).Rotate(-angle).Round();
 			Input.MoveX.Value = (int)move.X;
 			Input.MoveY.Value = (int)move.Y;
 			Input.Aim.Value = Input.GetAimVector().Rotate(-angle);

@@ -19,15 +19,15 @@ public class PlayerHooks {
 		hook_LiftSpeed_set = new Hook(typeof(Player).GetProperty("LiftSpeed").GetSetMethod(), LiftSpeed_set_fix);
 		On.Celeste.Player.TransitionTo += TransitionFix;
 		On.Celeste.Player.Render += RotateSprite;
+		On.Celeste.Player.SlipCheck += SlipCheckFix;
 	}
-
-
     public static void Unload() {
 		hook_orig_Update?.Dispose();
 		hook_Ducking_get?.Dispose();
 		hook_LiftSpeed_set?.Dispose();
 		On.Celeste.Player.TransitionTo -= TransitionFix;
 		On.Celeste.Player.Render -= RotateSprite;
+		On.Celeste.Player.SlipCheck -= SlipCheckFix;
 	}
 	private static void ColliderFixHook(ILContext il)
     {
@@ -81,5 +81,19 @@ public class PlayerHooks {
 			self.Sprite.Rotation = collider.gravity.angle;
 		}
 		orig(self);
+    }
+    private static bool SlipCheckFix(On.Celeste.Player.orig_SlipCheck orig, Player self, float addY)
+    {
+		if(self.Collider is TransformCollider collider) {
+			Vector2 v = Vector2.UnitY * (15f + addY) + Vector2.UnitX * 6f * (int)self.Facing;
+			if (!self.Scene.CollideCheck<Solid>(self.Position + v.Rotate(collider.gravity.angle)))
+			{
+				var offset = Vector2.UnitY * (-4f + addY);
+				return !self.Scene.CollideCheck<Solid>((v + offset).Rotate(collider.gravity.angle));
+			}
+			return false;
+		} else {
+			return orig(self, addY);
+		}
     }
 }
