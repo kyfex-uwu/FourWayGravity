@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using Celeste;
 using Celeste.Mod;
 using Microsoft.Xna.Framework;
@@ -10,12 +11,18 @@ using MonoMod.RuntimeDetour;
 
 public class PlayerHooks {
 	static ILHook hook_orig_Update;
+	static ILHook hook_orig_UpdateSprite;
 	static Hook hook_Ducking_get;
 	delegate bool orig_Ducking_get(Player self);
 	static Hook hook_LiftSpeed_set;
 	delegate void orig_LiftSpeed_set(Player self, Vector2 value);
 	public static void Load() {
 		hook_orig_Update = new ILHook(typeof(Player).GetMethod("orig_Update"), ColliderFixHook);
+		hook_orig_UpdateSprite = new ILHook(
+			typeof(Player)
+				.GetMethod("orig_UpdateSprite", BindingFlags.NonPublic | BindingFlags.Instance),
+			 PointCheckHook
+		);
 		hook_Ducking_get = new Hook(typeof(Player).GetProperty("Ducking").GetGetMethod(), Ducking_get_fix);
 		hook_LiftSpeed_set = new Hook(typeof(Player).GetProperty("LiftSpeed").GetSetMethod(), LiftSpeed_set_fix);
 		On.Celeste.Player.TransitionTo += TransitionFix;
@@ -25,6 +32,7 @@ public class PlayerHooks {
 	}
     public static void Unload() {
 		hook_orig_Update?.Dispose();
+		hook_orig_UpdateSprite?.Dispose();
 		hook_Ducking_get?.Dispose();
 		hook_LiftSpeed_set?.Dispose();
 		On.Celeste.Player.TransitionTo -= TransitionFix;
