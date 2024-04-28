@@ -28,7 +28,11 @@ public class GravityComponent : Component
 			var move = new Vector2(Input.MoveX, Input.MoveY).Rotate(gravity.Inv()).Round();
 			Input.MoveX.Value = (int)move.X;
 			Input.MoveY.Value = (int)move.Y;
-			Input.Aim.Value = Input.GetAimVector().Rotate(gravity.Inv());
+			if(Input.Aim.Value != Vector2.Zero) {
+				Input.Aim.Value = Input.GetAimVector(player.Facing).Rotate(gravity.Inv());
+			} else {
+				Input.Aim.Value = Input.GetAimVector(player.Facing);
+			}
 		}
     }
 	private void PostUpdate(Entity entity) {
