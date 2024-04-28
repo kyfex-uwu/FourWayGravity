@@ -85,11 +85,12 @@ public class PlayerHooks {
     private static bool SlipCheckFix(On.Celeste.Player.orig_SlipCheck orig, Player self, float addY)
     {
 		if(self.Collider is TransformCollider collider) {
-			Vector2 v = Vector2.UnitY * (15f + addY) + Vector2.UnitX * 6f * (int)self.Facing;
+			var height = 11f;
+			Vector2 v = -Vector2.UnitY * (height - 4f + addY) + Vector2.UnitX * 5f * (int)self.Facing;
 			if (!self.Scene.CollideCheck<Solid>(self.Position + v.Rotate(collider.gravity.angle)))
 			{
 				var offset = Vector2.UnitY * (-4f + addY);
-				return !self.Scene.CollideCheck<Solid>((v + offset).Rotate(collider.gravity.angle));
+				return !self.Scene.CollideCheck<Solid>(self.Position + (v + offset).Rotate(collider.gravity.angle));
 			}
 			return false;
 		} else {
