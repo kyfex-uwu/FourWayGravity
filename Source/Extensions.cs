@@ -18,6 +18,14 @@ public static class Extensions {
 			_ => Gravity.Up
 		};
 	}
+	public static Gravity Complement(this Gravity g) {
+		return g switch {
+			Gravity.Left => Gravity.Right,
+			Gravity.Up => Gravity.Up,
+			Gravity.Right => Gravity.Left,
+			_ => Gravity.Down
+		};
+	}
 	public static float Angle(this Gravity g) {
 		return g switch {
 			Gravity.Left => (float)Math.PI / 2f,

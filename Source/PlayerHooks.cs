@@ -27,7 +27,7 @@ public class PlayerHooks {
 		hook_LiftSpeed_set = new Hook(typeof(Player).GetProperty("LiftSpeed").GetSetMethod(), LiftSpeed_set_fix);
 		On.Celeste.Player.TransitionTo += TransitionFix;
 		On.Celeste.Player.Render += RotateSprite;
-		On.Celeste.Player.SlipCheck += SlipCheckFix;
+		IL.Celeste.Player.SlipCheck += PointCheckHook;
 		IL.Celeste.Player.ClimbCheck += PointCheckHook;
 	}
     public static void Unload() {
@@ -37,13 +37,22 @@ public class PlayerHooks {
 		hook_LiftSpeed_set?.Dispose();
 		On.Celeste.Player.TransitionTo -= TransitionFix;
 		On.Celeste.Player.Render -= RotateSprite;
-		On.Celeste.Player.SlipCheck -= SlipCheckFix;
+		IL.Celeste.Player.SlipCheck -= PointCheckHook;
 		IL.Celeste.Player.ClimbCheck -= PointCheckHook;
 	}
 	public static Vector2 PointCheckCorrection(Vector2 point, Player player) {
 		if(player.Collider is TransformCollider collider) {
-			return (point - player.Position).Rotate(collider.gravity.gravity) + player.Position;
+			var origin = collider.gravity.origin;
+			var corrected = (point - origin).Rotate(collider.gravity.gravity) + origin;
+			corrected += collider.gravity.gravity switch {
+				Gravity.Up => -new Vector2(1f),
+				Gravity.Right => -Vector2.UnitY,
+				_ => Vector2.Zero
+			}; // Idk why this is necessary tbh probably good to investigate later
+			GravityComponent.points.Add(corrected);
+			return corrected;
 		}
+		GravityComponent.points.Add(point);
 		return point;
 	}
 	private static void PointCheckHook(ILContext il) {
@@ -115,20 +124,5 @@ public class PlayerHooks {
 			self.Sprite.Rotation = collider.gravity.gravity.Angle();
 		}
 		orig(self);
-    }
-    private static bool SlipCheckFix(On.Celeste.Player.orig_SlipCheck orig, Player self, float addY)
-    {
-		if(self.Collider is TransformCollider collider) {
-			var height = 11f;
-			Vector2 v = -Vector2.UnitY * (height - 4f + addY) + Vector2.UnitX * 5f * (int)self.Facing;
-			if (!self.Scene.CollideCheck<Solid>(self.Position + v.Rotate(collider.gravity.gravity)))
-			{
-				var offset = Vector2.UnitY * (-4f + addY);
-				return !self.Scene.CollideCheck<Solid>(self.Position + (v + offset).Rotate(collider.gravity.gravity));
-			}
-			return false;
-		} else {
-			return orig(self, addY);
-		}
     }
 }

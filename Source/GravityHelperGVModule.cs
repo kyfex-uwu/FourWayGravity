@@ -31,20 +31,8 @@ public class GravityHelperGVModule : EverestModule {
         PlayerHooks.Load();
         SolidHooks.Load();
         PlayerHairHooks.Load();
-        On.Celeste.Player.DashEnd += SwitchGrav;
     }
-
-    private static void SwitchGrav(On.Celeste.Player.orig_DashEnd orig, Player self)
-    {
-        orig(self);
-        var grav = self.Components.Get<GravityComponent>();
-        if(grav == null) {
-            self.Add(new GravityComponent(true, true));
-        }
-    }
-
     public override void Unload() {
-        On.Celeste.Player.DashEnd -= SwitchGrav;
         PlayerHooks.Unload();
         SolidHooks.Unload();
         ControlHooks.Unload();

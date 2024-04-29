@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Celeste;
 using Celeste.Mod;
 using Microsoft.Xna.Framework;
@@ -7,29 +8,61 @@ using MonoMod.RuntimeDetour;
 
 public class GravityComponent : Component
 {
-	public Gravity gravity = Gravity.Right;
+	public Gravity gravity = Gravity.Left;
 	public Vector2 origin;
-	public bool track;
+	public bool track = false;
 	static Hook hook_ColliderSet;
-    public GravityComponent(bool active, bool visible) : base(active, visible)
+	public static List<Vector2> points = new ();
+    public GravityComponent(bool active, bool visible, Gravity gravity) : base(active, visible)
     {
+		this.gravity = gravity;
     }
+	public static void Set(Player player, Gravity gravity) {
+		if(player.Collider is TransformCollider collider) {
+			var track = collider.gravity.track;
+			collider.gravity.track = false;
+			if(gravity == collider.gravity.gravity)
+				return;
+			var offset = new Vector2(0f, -4f);
+			var prev = offset.Rotate(collider.gravity.gravity);
+			var next = offset.Rotate(gravity);
+			player.Position += (prev - next);
+			collider.gravity.gravity = gravity;
+			collider.gravity.track = track;
+			collider.gravity.origin = player.Position;
+			player.Speed = player.Speed
+				.Rotate(collider.gravity.gravity)
+				.Rotate(gravity.Inv());
+			player.DashDir = player.DashDir
+				.Rotate(collider.gravity.gravity)
+				.Rotate(gravity.Inv());
+		} else {
+			var component = new GravityComponent(true, true, Gravity.Down);  
+			player.Add(component);
+			var offset = new Vector2(0f, -4f);
+			var next = offset.Rotate(gravity);
+			player.Position += (offset - next);
+			component.gravity = gravity;
+		}
+		player.Ducking = true;
+	}
 	public override void Added(Entity entity) {
 		base.Added(entity);
 		origin = Entity.Position;
 		entity.PreUpdate += PreUpdate;
 		entity.PostUpdate += PostUpdate;
+		entity.Collider = entity.Collider;
 	}
     private void PreUpdate(Entity entity)
     {
 		track = true;
 		origin = Entity.Position;
 		if(Entity is Player player) {
-			var move = new Vector2(Input.MoveX, Input.MoveY).Rotate(gravity.Inv()).Round();
+			var move = new Vector2(Input.MoveX, Input.MoveY).Rotate(gravity.Complement()).Round();
 			Input.MoveX.Value = (int)move.X;
 			Input.MoveY.Value = (int)move.Y;
 			if(Input.Aim.Value != Vector2.Zero) {
-				Input.Aim.Value = Input.GetAimVector(player.Facing).Rotate(gravity.Inv());
+				Input.Aim.Value = Input.GetAimVector(player.Facing).Rotate(gravity.Complement());
 			} else {
 				Input.Aim.Value = Input.GetAimVector(player.Facing);
 			}
@@ -54,6 +87,10 @@ public class GravityComponent : Component
 				}
 			}
 		}
+		foreach(var point in points) {
+			Draw.Point(point, Color.Blue);
+		}
+		points.Clear();
 	}
 	public delegate void orig_ColliderSet(Entity self, Collider collider);
 	public static void ColliderSet(orig_ColliderSet orig, Entity self, Collider collider) {
@@ -101,31 +138,65 @@ public class TransformCollider : Collider {
 	public Hitbox hitbox;
 	public Vector2 offset;
 	public GravityComponent gravity;
-    public override float Width { get => hitbox.Width; set => hitbox.Width = value; }
-    public override float Height { get => hitbox.Height; set => hitbox.Height = value; }
-    public override float Top { 
+    public override float Width { 
 		get {
-			Update(); return hitbox.Top;
+			if(gravity.track) {
+				return source.Width;
+			} else {
+				return hitbox.Width;
+			}
 		} 
-		set => hitbox.Top = value; 
+		set {} 
 	}
-    public override float Bottom { 
+    public override float Height { 
 		get {
-			Update(); return hitbox.Bottom;
+			if(gravity.track) {
+				return source.Height;
+			} else {
+				return hitbox.Height;
+			}
 		} 
-		set => hitbox.Bottom = value; 
+		set {} 
 	}
-    public override float Left { 
+	public override float Top {
 		get {
-			Update(); return hitbox.Left;
-		} 
-		set => hitbox.Left = value; 
+			if(gravity.track) {
+				return source.Top;
+			} else {
+				return hitbox.Top;
+			}
+		}
+		set {} 
 	}
-    public override float Right { 
+	public override float Bottom {
 		get {
-			Update(); return hitbox.Right;
-		} 
-		set => hitbox.Right = value; 
+			if(gravity.track) {
+				return source.Bottom;
+			} else {
+				return hitbox.Bottom;
+			}
+		}
+		set {} 
+	}
+	public override float Left {
+		get {
+			if(gravity.track) {
+				return source.Left;
+			} else {
+				return hitbox.Left;
+			}
+		}
+		set {} 
+	}
+	public override float Right {
+		get {
+			if(gravity.track) {
+				return source.Right;
+			} else {
+				return hitbox.Right;
+			}
+		}
+		set {} 
 	}
 	public TransformCollider(Hitbox hitbox, Hitbox source, GravityComponent gravity) {
 		this.hitbox = hitbox;
