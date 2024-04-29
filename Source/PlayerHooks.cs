@@ -94,7 +94,10 @@ public class PlayerHooks {
 		}
     }
 	private static void CollideFix(Player player, Collider tmp) {
-		player.Collider = tmp;
+		if(player.Collider is TransformCollider collider) {
+			if(collider.source == player.hurtbox)
+				player.Collider = tmp;
+		}
 	}
     private static bool TransitionFix(On.Celeste.Player.orig_TransitionTo orig, Player self, Vector2 target, Vector2 direction)
     {
@@ -112,7 +115,7 @@ public class PlayerHooks {
     private static void LiftSpeed_set_fix(orig_LiftSpeed_set orig, Player self, Vector2 value)
     {
 		if(self.Collider is TransformCollider collider) {
-			orig(self, value.Rotate(collider.gravity.gravity.Inv()));
+			orig(self, value.Rotate(collider.gravity.gravity.Complement()));
 		} else {
 			orig(self, value);
 		}

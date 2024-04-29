@@ -1,6 +1,6 @@
 using System;
 using Microsoft.Xna.Framework;
-
+using Monocle;
 public static class Extensions {
 	public static Vector2 Rotate(this Vector2 v, Gravity gravity) {
 		return gravity switch {
@@ -8,6 +8,21 @@ public static class Extensions {
 			Gravity.Up => new Vector2(-v.X, -v.Y),
 			Gravity.Right => new Vector2(v.Y, -v.X),
 			_ => v
+		};
+	}
+	public static Hitbox Rotate(this Hitbox hitbox, Gravity gravity) {
+		var a = hitbox.TopLeft.Rotate(gravity);
+		var b = hitbox.BottomRight.Rotate(gravity);
+		var max = Vector2.Max(a, b);
+		var min = Vector2.Min(a, b);
+		return new Hitbox(max.X - min.X, max.Y - min.Y, min.X, min.Y);
+	}
+	public static Vector2 Dir(this Gravity g) {
+		return g switch {
+			Gravity.Left => -Vector2.UnitX,
+			Gravity.Up => -Vector2.UnitY,
+			Gravity.Right => Vector2.UnitX,
+			_ => Vector2.UnitY
 		};
 	}
 	public static Gravity Inv(this Gravity g) {

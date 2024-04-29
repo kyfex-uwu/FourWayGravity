@@ -18,33 +18,29 @@ public class GravityComponent : Component
 		this.gravity = gravity;
     }
 	public static void Set(Player player, Gravity gravity) {
+		GravityComponent comp;
+		TransformCollider col;
 		if(player.Collider is TransformCollider collider) {
-			var track = collider.gravity.track;
-			collider.gravity.track = false;
-			if(gravity == collider.gravity.gravity)
-				return;
-			var offset = new Vector2(0f, -4f);
-			var prev = offset.Rotate(collider.gravity.gravity);
-			var next = offset.Rotate(gravity);
-			player.Position += (prev - next);
-			collider.gravity.gravity = gravity;
-			collider.gravity.track = track;
-			collider.gravity.origin = player.Position;
-			player.Speed = player.Speed
-				.Rotate(collider.gravity.gravity)
-				.Rotate(gravity.Inv());
-			player.DashDir = player.DashDir
-				.Rotate(collider.gravity.gravity)
-				.Rotate(gravity.Inv());
+			comp = collider.gravity;
+			col = collider;
 		} else {
-			var component = new GravityComponent(true, true, Gravity.Down);  
-			player.Add(component);
-			var offset = new Vector2(0f, -4f);
-			var next = offset.Rotate(gravity);
-			player.Position += (offset - next);
-			component.gravity = gravity;
+			comp = new GravityComponent(true, true, Gravity.Down);
+			player.Add(comp);
+			col = (TransformCollider)player.Collider;
 		}
-		player.Ducking = true;
+		if(gravity == comp.gravity)
+			return;
+		var prev = comp.track;
+		comp.track = false;
+		comp.Apply(player);
+		player.Position += 8f * gravity.Dir() - 4f * comp.gravity.Dir();
+
+		player.Speed = player.Speed.Rotate(comp.gravity).Rotate(gravity.Complement());
+		player.DashDir = player.DashDir.Rotate(comp.gravity).Rotate(gravity.Complement());
+		comp.gravity = gravity;
+		comp.track = prev;
+		comp.origin = player.Position;
+		player.Collider = player.Collider;
 	}
 	public override void Added(Entity entity) {
 		base.Added(entity);
@@ -52,6 +48,11 @@ public class GravityComponent : Component
 		entity.PreUpdate += PreUpdate;
 		entity.PostUpdate += PostUpdate;
 		entity.Collider = entity.Collider;
+	}
+	public void Apply(Entity entity) {
+		var dif = entity.Position - origin;
+		var dest = origin + dif.Rotate(gravity);
+		entity.Position = dest;
 	}
     private void PreUpdate(Entity entity)
     {
@@ -70,9 +71,7 @@ public class GravityComponent : Component
     }
 	private void PostUpdate(Entity entity) {
 		track = false;
-		var dif = entity.Position - origin;
-		var dest = origin + dif.Rotate(gravity);
-		entity.Position = dest;
+		Apply(entity);
 		origin = Entity.Position;
 	}
 	public override void Removed(Entity entity) {
@@ -95,12 +94,17 @@ public class GravityComponent : Component
 	public delegate void orig_ColliderSet(Entity self, Collider collider);
 	public static void ColliderSet(orig_ColliderSet orig, Entity self, Collider collider) {
 		var gravity = self.Components.Get<GravityComponent>();
-		if(collider is Hitbox box && box != null && gravity != null) {
-			var corner1 = box.TopLeft.Rotate(gravity.gravity);
-			var corner2 = box.BottomRight.Rotate(gravity.gravity);
-			var max = Vector2.Max(corner1, corner2);
-			var min = Vector2.Min(corner1, corner2);
-			var rotated = new Hitbox(max.X - min.X, max.Y - min.Y, min.X, min.Y);  
+		if(gravity != null) {
+			Hitbox box;
+			if(collider is Hitbox hitbox) {
+				box = hitbox;
+			} else if(collider is TransformCollider trans) {
+				box = trans.source;
+			} else {
+				orig(self, collider);
+				return;
+			}
+			var rotated = box.Rotate(gravity.gravity);
 			var transform = new TransformCollider(rotated, box, gravity);
 			orig(self, transform);
 			return;
