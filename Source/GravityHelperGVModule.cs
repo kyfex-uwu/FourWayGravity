@@ -29,14 +29,14 @@ public class GravityHelperGVModule : EverestModule {
         GravityComponent.SetHooks();
         ControlHooks.Load();
         PlayerHooks.Load();
-        SolidHooks.Load();
         PlayerHairHooks.Load();
+        SpikeHooks.Load();
     }
     public override void Unload() {
         PlayerHooks.Unload();
-        SolidHooks.Unload();
         ControlHooks.Unload();
         GravityComponent.RemoveHooks();
         PlayerHairHooks.Unload();
+        SpikeHooks.Unload();
     }
 }

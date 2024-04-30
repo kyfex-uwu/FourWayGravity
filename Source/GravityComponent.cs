@@ -33,11 +33,13 @@ public class GravityComponent : Component
 		var prev = comp.track;
 		comp.track = false;
 		comp.Apply(player);
-		player.Position += 8f * gravity.Dir() - 4f * comp.gravity.Dir();
-
+		player.Position += 4f * gravity.Dir() - 4f * comp.gravity.Dir();
 		player.Speed = player.Speed.Rotate(comp.gravity).Rotate(gravity.Complement());
 		player.DashDir = player.DashDir.Rotate(comp.gravity).Rotate(gravity.Complement());
 		comp.gravity = gravity;
+		if(player.CollideCheck<Solid>()) {
+			player.Ducking = true;
+		}
 		comp.track = prev;
 		comp.origin = player.Position;
 		player.Collider = player.Collider;
