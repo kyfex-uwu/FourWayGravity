@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using Celeste;
+using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod.RuntimeDetour;
 

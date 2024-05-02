@@ -24,12 +24,12 @@ public class PlayerHooks {
 		hook_Ducking_get = new Hook(typeof(Player).GetProperty("Ducking").GetGetMethod(), Ducking_get_fix);
 		On.Celeste.Player.TransitionTo += TransitionFix;
 		On.Celeste.Player.Render += RotateSprite;
+		On.Celeste.Player.ExplodeLaunch_Vector2_bool_bool += ExplodeLaunch;
 		IL.Celeste.Player.SlipCheck += PointCheckHook;
 		IL.Celeste.Player.ClimbCheck += PointCheckHook;
 		IL.Celeste.Player.OnCollideH += DashCollideHook;
 		IL.Celeste.Player.OnCollideV += DashCollideHook;
 	}
-
     public static void Unload() {
 		hook_orig_Update?.Dispose();
 		hook_orig_UpdateSprite?.Dispose();
@@ -162,4 +162,18 @@ public class PlayerHooks {
 			cursor.EmitDelegate(Views.Pop);
 		}
     }
+    private static Vector2 ExplodeLaunch(On.Celeste.Player.orig_ExplodeLaunch_Vector2_bool_bool orig, Player self, Vector2 from, bool snapUp, bool sidesOnly)
+    {
+		Views.PlayerView(self);
+		if(self.Collider is TransformCollider collider) {
+			from = collider.gravity.origin + (from  - collider.gravity.origin).RotateInv(collider.gravity.gravity);
+			if(collider.gravity.gravity == Gravity.Left || collider.gravity.gravity == Gravity.Right) {
+				sidesOnly = false;
+			}
+		}
+		var result = orig(self, from, snapUp, sidesOnly);
+		Views.Pop(self);
+		return result;
+    }
+
 }
