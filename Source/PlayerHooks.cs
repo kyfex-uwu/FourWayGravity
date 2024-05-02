@@ -29,7 +29,10 @@ public class PlayerHooks {
 		On.Celeste.Player.Render += RotateSprite;
 		IL.Celeste.Player.SlipCheck += PointCheckHook;
 		IL.Celeste.Player.ClimbCheck += PointCheckHook;
+		IL.Celeste.Player.OnCollideH += DashCollideHook;
+		IL.Celeste.Player.OnCollideV += DashCollideHook;
 	}
+
     public static void Unload() {
 		hook_orig_Update?.Dispose();
 		hook_orig_UpdateSprite?.Dispose();
@@ -39,6 +42,8 @@ public class PlayerHooks {
 		On.Celeste.Player.Render -= RotateSprite;
 		IL.Celeste.Player.SlipCheck -= PointCheckHook;
 		IL.Celeste.Player.ClimbCheck -= PointCheckHook;
+		IL.Celeste.Player.OnCollideH -= DashCollideHook;
+		IL.Celeste.Player.OnCollideV -= DashCollideHook;
 	}
 	public static Vector2 PointCheckCorrection(Vector2 point, Player player) {
 		if(player.Collider is TransformCollider collider) {
@@ -93,6 +98,7 @@ public class PlayerHooks {
 			}
 		}
     }
+	
 	private static void CollideFix(Player player, Collider tmp) {
 		if(player.Collider is TransformCollider collider) {
 			if(collider.source == player.hurtbox)
@@ -127,5 +133,32 @@ public class PlayerHooks {
 			self.Sprite.Rotation = collider.gravity.gravity.Angle();
 		}
 		orig(self);
+    }
+	private static Vector2 FixDashDirection(Vector2 direction, Player player) {
+		if(player.Collider is TransformCollider collider) {
+			return direction.Rotate(collider.gravity.gravity);
+		}
+		return direction;
+	}
+    private static void DashCollideHook(ILContext il)
+    {
+		var cursor = new ILCursor(il);
+		var method = typeof(DashCollision).GetMethod("Invoke");
+		while(cursor.TryGotoNext(
+			MoveType.Before,
+			i => i.MatchCallvirt(method)
+		)) {
+			Logger.Log(LogLevel.Info, "GHGV", "Dash patch");
+			cursor.EmitLdarg0();
+			cursor.EmitDelegate(FixDashDirection);
+			cursor.EmitLdarg0();
+			cursor.EmitDelegate(Views.WorldView);
+			cursor.TryGotoNext(
+				MoveType.After,
+				i => i.MatchCallvirt(method)
+			);
+			cursor.EmitLdarg0();
+			cursor.EmitDelegate(Views.Pop);
+		}
     }
 }
