@@ -15,7 +15,7 @@ public class PlayerHooks {
 	static Hook hook_Ducking_get;
 	delegate bool orig_Ducking_get(Player self);
 	public static void Load() {
-		hook_orig_Update = new ILHook(typeof(Player).GetMethod("orig_Update"), ColliderFixHook);
+		hook_orig_Update = new ILHook(typeof(Player).GetMethod("orig_Update"), Update);
 		hook_orig_UpdateSprite = new ILHook(
 			typeof(Player)
 				.GetMethod("orig_UpdateSprite", BindingFlags.NonPublic | BindingFlags.Instance),
@@ -75,23 +75,37 @@ public class PlayerHooks {
 			);
 		}
 	}
-	private static void ColliderFixHook(ILContext il)
+	private static void Update(ILContext il)
     {
 		var cursor = new ILCursor(il);		
-		var bounds = cursor.TryGotoNext(
-			i => i.MatchCallvirt<Level>("EnforceBounds")
-		);
-		if(bounds) {
-			var match = cursor.TryGotoPrev(
+		try {
+			cursor.GotoNext(i => i.MatchCallvirt<PlayerCollider>("Check"));
+			cursor.GotoPrev(
 				MoveType.After,
 				i => i.MatchCall(typeof(Entity).GetProperty("Collider").GetSetMethod())
 			);
-			if(match) {
-				cursor.MoveAfterLabels();
-				cursor.Emit(OpCodes.Ldarg_0);
-				cursor.Emit(OpCodes.Ldloc, 14);
-				cursor.EmitDelegate(CollideFix);
-			}
+			cursor.EmitLdarg0();
+			cursor.EmitDelegate(Views.WorldView);
+			cursor.GotoNext(
+				MoveType.After,
+				i => i.MatchCall(typeof(Entity).GetProperty("Collider").GetSetMethod())
+			);
+			// Pop before the return in the loop
+			cursor.EmitLdarg0();
+			cursor.EmitDelegate(Views.Pop);
+			// Reset collider
+			cursor.GotoNext(
+				MoveType.After,
+				i => i.MatchCall(typeof(Entity).GetProperty("Collider").GetSetMethod())
+			);
+			cursor.MoveAfterLabels();
+			cursor.Emit(OpCodes.Ldarg_0);
+			cursor.Emit(OpCodes.Ldloc, 14);
+			cursor.EmitDelegate(CollideFix);
+			cursor.EmitLdarg0();
+			cursor.EmitDelegate(Views.Pop);
+		} catch(Exception e) {
+			Logger.Log(LogLevel.Info, "GHGV", $"Update hook failed {e}");
 		}
     }
 	
