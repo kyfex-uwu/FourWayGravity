@@ -93,6 +93,8 @@ public class GravityComponent : Component
 		var player = (Player)Entity;
 		player.Speed = player.Speed.RotateInv(gravity);		
 		player.DashDir = player.DashDir.RotateInv(gravity);
+		player.currentLiftSpeed = player.currentLiftSpeed.RotateInv(gravity);
+		player.lastLiftSpeed = player.lastLiftSpeed.RotateInv(gravity);
 		currentView = View.Player;
 	}
 	public void WorldView() {
@@ -100,6 +102,8 @@ public class GravityComponent : Component
 		Apply(player);
 		player.Speed = player.Speed.Rotate(gravity);		
 		player.DashDir = player.DashDir.Rotate(gravity);
+		player.currentLiftSpeed = player.currentLiftSpeed.Rotate(gravity);
+		player.lastLiftSpeed = player.lastLiftSpeed.Rotate(gravity);
 		currentView = View.World;
 	}
 	public void Pop() {
