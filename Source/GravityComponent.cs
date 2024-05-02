@@ -10,9 +10,12 @@ public class GravityComponent : Component
 {
 	public Gravity gravity = Gravity.Left;
 	public Vector2 origin;
-	public bool track = false;
+	public bool Track => currentView == View.Player;
 	static Hook hook_ColliderSet;
 	public static List<Vector2> points = new ();
+	public Stack<View> viewStack = new();
+	public View currentView = View.World;
+	
     public GravityComponent(bool active, bool visible, Gravity gravity) : base(active, visible)
     {
 		this.gravity = gravity;
@@ -30,18 +33,13 @@ public class GravityComponent : Component
 		}
 		if(gravity == comp.gravity)
 			return;
-		var prev = comp.track;
-		comp.track = false;
-		comp.Apply(player);
+		Views.WorldView(player);
 		player.Position += 4f * gravity.Dir() - 4f * comp.gravity.Dir();
-		player.Speed = player.Speed.Rotate(comp.gravity).Rotate(gravity.Complement());
-		player.DashDir = player.DashDir.Rotate(comp.gravity).Rotate(gravity.Complement());
-		comp.gravity = gravity;
 		if(player.CollideCheck<Solid>()) {
 			player.Ducking = true;
 		}
-		comp.track = prev;
-		comp.origin = player.Position;
+		comp.gravity = gravity;
+		Views.Pop(player);
 		player.Collider = player.Collider;
 	}
 	public override void Added(Entity entity) {
@@ -58,23 +56,20 @@ public class GravityComponent : Component
 	}
     private void PreUpdate(Entity entity)
     {
-		track = true;
-		origin = Entity.Position;
 		if(Entity is Player player) {
-			var move = new Vector2(Input.MoveX, Input.MoveY).Rotate(gravity.Complement()).Round();
+			var move = new Vector2(Input.MoveX, Input.MoveY).RotateInv(gravity).Round();
 			Input.MoveX.Value = (int)move.X;
 			Input.MoveY.Value = (int)move.Y;
 			if(Input.Aim.Value != Vector2.Zero) {
-				Input.Aim.Value = Input.GetAimVector(player.Facing).Rotate(gravity.Complement());
+				Input.Aim.Value = Input.GetAimVector(player.Facing).RotateInv(gravity);
 			} else {
 				Input.Aim.Value = Input.GetAimVector(player.Facing);
 			}
+			Views.PlayerView(player);	
 		}
     }
 	private void PostUpdate(Entity entity) {
-		track = false;
-		Apply(entity);
-		origin = Entity.Position;
+		Views.Pop((Player)entity);
 	}
 	public override void Removed(Entity entity) {
 		
@@ -92,6 +87,32 @@ public class GravityComponent : Component
 			Draw.Point(point, Color.Blue);
 		}
 		points.Clear();
+	}
+	public void PlayerView() {
+		origin = Entity.Position;
+		var player = (Player)Entity;
+		player.Speed = player.Speed.RotateInv(gravity);		
+		player.DashDir = player.DashDir.RotateInv(gravity);
+		currentView = View.Player;
+	}
+	public void WorldView() {
+		var player = (Player)Entity;
+		Apply(player);
+		player.Speed = player.Speed.Rotate(gravity);		
+		player.DashDir = player.DashDir.Rotate(gravity);
+		currentView = View.World;
+	}
+	public void Pop() {
+		if(viewStack.Count == 0)
+			return;
+		var view = viewStack.Pop();
+		if(view == currentView)
+			return;
+		if(view == View.Player) {
+			PlayerView();			
+		} else {
+			WorldView();
+		}
 	}
 	public delegate void orig_ColliderSet(Entity self, Collider collider);
 	public static void ColliderSet(orig_ColliderSet orig, Entity self, Collider collider) {
@@ -139,136 +160,9 @@ public class GravityComponent : Component
 		}
     }
 }
-public class TransformCollider : Collider {
-	public Hitbox source;
-	public Hitbox hitbox;
-	public Vector2 offset;
-	public GravityComponent gravity;
-    public override float Width { 
-		get {
-			if(gravity.track) {
-				return source.Width;
-			} else {
-				return hitbox.Width;
-			}
-		} 
-		set {} 
-	}
-    public override float Height { 
-		get {
-			if(gravity.track) {
-				return source.Height;
-			} else {
-				return hitbox.Height;
-			}
-		} 
-		set {} 
-	}
-	public override float Top {
-		get {
-			if(gravity.track) {
-				return source.Top;
-			} else {
-				return hitbox.Top;
-			}
-		}
-		set {} 
-	}
-	public override float Bottom {
-		get {
-			if(gravity.track) {
-				return source.Bottom;
-			} else {
-				return hitbox.Bottom;
-			}
-		}
-		set {} 
-	}
-	public override float Left {
-		get {
-			if(gravity.track) {
-				return source.Left;
-			} else {
-				return hitbox.Left;
-			}
-		}
-		set {} 
-	}
-	public override float Right {
-		get {
-			if(gravity.track) {
-				return source.Right;
-			} else {
-				return hitbox.Right;
-			}
-		}
-		set {} 
-	}
-	public TransformCollider(Hitbox hitbox, Hitbox source, GravityComponent gravity) {
-		this.hitbox = hitbox;
-		this.gravity = gravity;
-		this.source = source;
-		offset = hitbox.Position;
-	}
-	public override void Added(Entity entity) {
-		base.Added(entity);
-		hitbox.Entity = Entity;
-	}
-	public void Update() {
-		hitbox.Position = offset;
-		if(!gravity.track) return;
-		var dif = Entity.Position - gravity.origin;
-		hitbox.Position += -dif + dif.Rotate(gravity.gravity);
-	}
-    public override Collider Clone()
-    {
-		return new TransformCollider((Hitbox)hitbox.Clone(), source, gravity);
-    }
-
-    public override bool Collide(Circle circle) {
-		Update();
-		return hitbox.Collide(circle);
-	}
-	public override bool Collide(ColliderList list) {
-		Update();
-		return hitbox.Collide(list);	
-	}
-
-    public override bool Collide(Vector2 point)
-    {
-		Update();
-		return hitbox.Collide(point);
-    }
-
-    public override bool Collide(Rectangle rect)
-    {
-		Update();
-		return hitbox.Collide(rect);
-    }
-
-    public override bool Collide(Vector2 from, Vector2 to)
-    {
-		Update();
-		return hitbox.Collide(from, to);
-    }
-
-    public override bool Collide(Hitbox box)
-    {
-		Update();
-		return hitbox.Collide(box);
-    }
-
-    public override bool Collide(Grid grid)
-    {
-		Update();
-		return hitbox.Collide(grid);
-    }
-    public override void Render(Camera camera, Color color)
-    {
-		Draw.HollowRect(hitbox.AbsoluteX, hitbox.AbsoluteY, hitbox.Width, hitbox.Height, Color.Red);
-    }
-}
 public enum Gravity {
 	Up, Down, Left, Right
 }
-
+public enum View {
+	Player, World
+}

@@ -6,14 +6,6 @@ using Monocle;
 using MonoMod.RuntimeDetour;
 
 public class ControlHooks {
-	private static bool Set(Entity entity, bool value) {
-		var gravity = entity.Components.Get<GravityComponent>();
-		if(gravity != null) {
-			var prev = gravity.track;
-			gravity.track = value;
-			return prev;
-		} 
-		return false;	}
 	public static void Load() {
 		On.Celeste.Level.EnforceBounds += EnforceBounds;
 		On.Celeste.Actor.IsRiding_Solid += Actor_IsRiding_Solid;
@@ -28,30 +20,33 @@ public class ControlHooks {
 	}
 	private static void EnforceBounds(On.Celeste.Level.orig_EnforceBounds orig, Celeste.Level self, Celeste.Player player)
     {
-		var prev = Set(player, false);
+		Views.WorldView(player);
 		orig(self, player);
-		Set(player, prev);
+		Views.Pop(player);
     }
     private static bool Player_IsRiding_Solid(On.Celeste.Player.orig_IsRiding_Solid orig, Celeste.Player self, Celeste.Solid solid)
     {
-		var prev = Set(self, true);
+		Views.PlayerView(self);
 		var result = orig(self, solid);
-		Set(self, prev);
+		Views.Pop(self);
 		return result;
     }
     private static bool Actor_IsRiding_Solid(On.Celeste.Actor.orig_IsRiding_Solid orig, Celeste.Actor self, Celeste.Solid solid)
     {
-		var prev = Set(self, true);
-		var result = orig(self, solid);
-		Set(self, prev);
-		return result;
+		if(self is Player player) {
+			Views.PlayerView(player);
+			var result = orig(self, solid);
+			Views.Pop(player);
+			return result;
+		}
+		return orig(self, solid);
     }
     private static Celeste.Player GetPlayerClimbing(On.Celeste.Solid.orig_GetPlayerClimbing orig, Celeste.Solid self)
     {
 		var player = self.Scene.Tracker.GetEntity<Player>();
-		var prev = Set(player, true);
+		Views.PlayerView(player);
 		var result = orig(self);
-		Set(player, prev);
+		Views.Pop(player);
 		return result;
     }
 }

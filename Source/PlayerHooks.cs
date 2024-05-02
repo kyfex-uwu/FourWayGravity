@@ -115,7 +115,7 @@ public class PlayerHooks {
     private static void LiftSpeed_set_fix(orig_LiftSpeed_set orig, Player self, Vector2 value)
     {
 		if(self.Collider is TransformCollider collider) {
-			orig(self, value.Rotate(collider.gravity.gravity.Complement()));
+			orig(self, value.RotateInv(collider.gravity.gravity));
 		} else {
 			orig(self, value);
 		}
