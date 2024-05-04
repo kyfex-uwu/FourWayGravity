@@ -15,9 +15,10 @@ public class BounceBlockHooks {
 
     private static Celeste.Player WindUpPlayerCheck(On.Celeste.BounceBlock.orig_WindUpPlayerCheck orig, Celeste.BounceBlock self)
     {
-		if(self.Scene.Tracker.GetEntity<Player>().Collider is not TransformCollider)
+		var player = self.Scene.Tracker.GetEntity<Player>();
+		if(player != null && player.Collider is not TransformCollider)
 			return orig(self);
-		var player = self.GetPlayerOnTop();
+		player = self.GetPlayerOnTop();
 		if(player == null || (player != null && player.Speed.Y < 0f)) {
 			player = self.GetPlayerClimbing();
 		}
