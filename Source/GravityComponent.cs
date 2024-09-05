@@ -41,6 +41,7 @@ public class GravityComponent : Component
 		comp.gravity = gravity;
 		Views.Pop(player);
 		player.Collider = player.Collider;
+		player.sweatSprite.Rotation = gravity.Angle();
 	}
 	public override void Added(Entity entity) {
 		base.Added(entity);

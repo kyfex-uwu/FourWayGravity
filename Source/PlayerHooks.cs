@@ -4,15 +4,19 @@ using System.Reflection;
 using Celeste;
 using Celeste.Mod;
 using Microsoft.Xna.Framework;
+using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Monocle;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
+using MonoMod.Utils;
 
 public class PlayerHooks {
 	static ILHook hook_orig_Update;
 	static ILHook hook_orig_UpdateSprite;
+	static ILHook hook_Dash_Coroutine;
 	static Hook hook_Ducking_get;
+	static Type dashCoroutineType;
 	delegate bool orig_Ducking_get(Player self);
 	public static void Load() {
 		hook_orig_Update = new ILHook(typeof(Player).GetMethod("orig_Update"), Update);
@@ -22,19 +26,24 @@ public class PlayerHooks {
 			 PointCheckHook
 		);
 		hook_Ducking_get = new Hook(typeof(Player).GetProperty("Ducking").GetGetMethod(), Ducking_get_fix);
-		On.Celeste.Player.TransitionTo += TransitionFix;
 		On.Celeste.Player.Render += RotateSprite;
 		On.Celeste.Player.ExplodeLaunch_Vector2_bool_bool += ExplodeLaunch;
+		var stateMachineTarget = typeof(Player).GetMethod("DashCoroutine", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget();
+		hook_Dash_Coroutine = new ILHook(
+			stateMachineTarget,
+			DashCoroutineHook);
 		IL.Celeste.Player.SlipCheck += PointCheckHook;
 		IL.Celeste.Player.ClimbCheck += PointCheckHook;
 		IL.Celeste.Player.OnCollideH += DashCollideHook;
 		IL.Celeste.Player.OnCollideV += DashCollideHook;
 	}
+
+
     public static void Unload() {
 		hook_orig_Update?.Dispose();
 		hook_orig_UpdateSprite?.Dispose();
 		hook_Ducking_get?.Dispose();
-		On.Celeste.Player.TransitionTo -= TransitionFix;
+		hook_Dash_Coroutine?.Dispose();
 		On.Celeste.Player.Render -= RotateSprite;
 		IL.Celeste.Player.SlipCheck -= PointCheckHook;
 		IL.Celeste.Player.ClimbCheck -= PointCheckHook;
@@ -104,6 +113,13 @@ public class PlayerHooks {
 			cursor.EmitDelegate(CollideFix);
 			cursor.EmitLdarg0();
 			cursor.EmitDelegate(Views.Pop);
+			
+			cursor.Index = 0;
+			cursor.GotoNext(MoveType.Before, i => i.MatchCallvirt<SpeedRing>(nameof(SpeedRing.Init)));
+			var method = typeof(Monocle.Calc).GetMethods().Where(method => method.GetParameters().Length == 1 && method.Name == "Angle").First();
+			cursor.GotoPrev(MoveType.Before, i => i.MatchCall(method));
+			cursor.EmitLdarg0();
+			cursor.EmitDelegate(FixDashDirection);
 		} catch(Exception e) {
 			Logger.Log(LogLevel.Info, "GHGV", $"Update hook failed {e}");
 		}
@@ -115,12 +131,6 @@ public class PlayerHooks {
 				player.Collider = tmp;
 		}
 	}
-    private static bool TransitionFix(On.Celeste.Player.orig_TransitionTo orig, Player self, Vector2 target, Vector2 direction)
-    {
-		var corrected = target - direction * new Vector2(8f, 12f);
-		var offset = direction * self.Collider.Size;
-		return orig(self, corrected + offset + direction, direction);
-    }
     private static bool Ducking_get_fix(orig_Ducking_get orig, Player self)
     {
 		if(self.Collider is TransformCollider transformCollider) {
@@ -162,6 +172,26 @@ public class PlayerHooks {
 			cursor.EmitDelegate(Views.Pop);
 		}
     }
+	private static Vector2 FixSlashDirection(Vector2 direction, Player player) {
+		if(player.Collider is TransformCollider collider) {
+			return direction.Rotate(collider.gravity.gravity);
+		}
+		return direction;
+	}
+    private static void DashCoroutineHook(ILContext il)
+    {
+		var cursor = new ILCursor(il);
+		var methods = typeof(Monocle.Calc).GetMethods();
+		var method = methods.Where(method => method.GetParameters().Length == 1 && method.Name == "Angle").First();
+		while(cursor.TryGotoNext(MoveType.Before, 
+			i => i.MatchCall(method)
+		)) {
+			cursor.EmitLdloc1();
+			cursor.EmitDelegate(FixDashDirection);
+			Logger.Info("GHGV", "Angle target");
+			cursor.GotoNext(MoveType.After, i => i.MatchCall(method));
+		}
+    }
     private static Vector2 ExplodeLaunch(On.Celeste.Player.orig_ExplodeLaunch_Vector2_bool_bool orig, Player self, Vector2 from, bool snapUp, bool sidesOnly)
     {
 		Views.PlayerView(self);
@@ -174,6 +204,5 @@ public class PlayerHooks {
 		var result = orig(self, from, snapUp, sidesOnly);
 		Views.Pop(self);
 		return result;
-    }
-
+    }  
 }

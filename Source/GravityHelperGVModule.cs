@@ -31,7 +31,6 @@ public class GravityHelperGVModule : EverestModule {
         PlayerHooks.Load();
         ActorHooks.Load();
         PlayerHairHooks.Load();
-        JumpThruHooks.Load();
         SolidHooks.Load();
         BounceBlockHooks.Load();
     }
@@ -41,7 +40,6 @@ public class GravityHelperGVModule : EverestModule {
         PlayerHooks.Unload();
         ActorHooks.Unload();
         PlayerHairHooks.Unload();
-        JumpThruHooks.Unload();
         SolidHooks.Unload();
         BounceBlockHooks.Unload();
     }

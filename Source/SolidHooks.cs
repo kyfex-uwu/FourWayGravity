@@ -15,7 +15,7 @@ public class SolidHooks {
 	}
 	private static Vector2 CorrectOffset(Vector2 v, Solid solid) {
 		Player player = solid.Scene.Tracker.GetEntity<Player>();
-		if(player != null && player.collider is TransformCollider collider) {
+		if(player != null && player.Collider is TransformCollider collider) {
 			return collider.gravity.gravity.Dir();
 		}
 		return v;
