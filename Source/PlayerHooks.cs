@@ -28,6 +28,7 @@ public class PlayerHooks {
 		hook_Ducking_get = new Hook(typeof(Player).GetProperty("Ducking").GetGetMethod(), Ducking_get_fix);
 		On.Celeste.Player.Render += RotateSprite;
 		On.Celeste.Player.ExplodeLaunch_Vector2_bool_bool += ExplodeLaunch;
+		On.Celeste.Player.BoostUpdate += BoostUpdateHook;
 		var stateMachineTarget = typeof(Player).GetMethod("DashCoroutine", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget();
 		hook_Dash_Coroutine = new ILHook(
 			stateMachineTarget,
@@ -205,4 +206,11 @@ public class PlayerHooks {
 		Views.Pop(self);
 		return result;
     }  
+    private static int BoostUpdateHook(On.Celeste.Player.orig_BoostUpdate orig, Player self)
+    {
+		Views.WorldView(self);
+		var result = orig(self);
+		Views.Pop(self);
+		return result;
+    }
 }

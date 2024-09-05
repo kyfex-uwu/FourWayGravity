@@ -58,7 +58,7 @@ public class GravityComponent : Component
     private void PreUpdate(Entity entity)
     {
 		if(Entity is Player player) {
-			var move = new Vector2(Input.MoveX, Input.MoveY).RotateInv(gravity).Round();
+			var move = new Vector2(Input.MoveX, Input.MoveY).RotateInv(gravity);
 			Input.MoveX.Value = (int)move.X;
 			Input.MoveY.Value = (int)move.Y;
 			if(Input.Aim.Value != Vector2.Zero) {
@@ -66,6 +66,7 @@ public class GravityComponent : Component
 			} else {
 				Input.Aim.Value = Input.GetAimVector(player.Facing);
 			}
+			Input.Feather.Value = Input.Feather.Value.RotateInv(gravity);
 			Views.PlayerView(player);	
 		}
     }
