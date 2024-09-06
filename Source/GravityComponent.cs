@@ -36,6 +36,9 @@ public class GravityComponent : Component
 		Views.WorldView(entity);
 		entity.Position += 4f * gravity.Dir() - 4f * comp.gravity.Dir();
 		comp.gravity = gravity;
+		foreach(var sprite in entity.Components.GetAll<Sprite>()) {
+			sprite.Rotation = gravity.Angle();
+		}
 		entity.Components.Get<GravityEntity>().setGravity(comp);
 		Views.Pop(entity);
 		entity.Collider = entity.Collider;
@@ -65,7 +68,7 @@ public class GravityComponent : Component
 			}
 			Input.Feather.Value = Input.Feather.Value.RotateInv(gravity);
 		}
-		Views.ActorView(Entity);	
+		Views.EntityView(Entity);	
     }
 	private void PostUpdate(Entity entity) {
 		Views.Pop(entity);
@@ -133,6 +136,10 @@ public class GravityComponent : Component
 		try {
 			return orig(self, collider);
 		} catch {
+			if(self is TransformCollider trans) {
+				trans.Update();
+				return collider.Collide(trans.hitbox);
+			}
 			return self switch {
 				Hitbox hitbox => collider.Collide(hitbox),
 				Grid grid => collider.Collide(grid),

@@ -35,7 +35,7 @@ public class GravityHelperGVModule : EverestModule {
         SolidHooks.Load();
         MoonBlockHooks.Load();
         BounceBlockHooks.Load();
-        TheoHooks.Load();
+        HoldableHooks.Load();
     }
     public override void Unload() {
         GravityComponent.RemoveHooks();
@@ -47,6 +47,6 @@ public class GravityHelperGVModule : EverestModule {
         SolidHooks.Unload();
         MoonBlockHooks.Unload();
         BounceBlockHooks.Unload();
-        TheoHooks.Unload();
+        HoldableHooks.Unload();
     }
 }

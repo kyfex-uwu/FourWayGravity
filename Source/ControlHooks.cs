@@ -25,7 +25,7 @@ public class ControlHooks {
     }
     private static bool Player_IsRiding_Solid(On.Celeste.Player.orig_IsRiding_Solid orig, Celeste.Player self, Celeste.Solid solid)
     {
-		Views.ActorView(self);
+		Views.EntityView(self);
 		var result = orig(self, solid);
 		Views.Pop(self);
 		return result;
@@ -33,7 +33,7 @@ public class ControlHooks {
     private static bool Actor_IsRiding_Solid(On.Celeste.Actor.orig_IsRiding_Solid orig, Celeste.Actor self, Celeste.Solid solid)
     {
 		if(self is Player player) {
-			Views.ActorView(player);
+			Views.EntityView(player);
 			var result = orig(self, solid);
 			Views.Pop(player);
 			return result;

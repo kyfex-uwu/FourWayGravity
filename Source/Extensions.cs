@@ -60,7 +60,7 @@ public static class Extensions {
 	}
 }
 public static class Views {
-	public static void ActorView(Entity entity) {
+	public static void EntityView(Entity entity) {
 		if(entity.Collider is TransformCollider collider) {
 			collider.gravity.viewStack.Push(collider.gravity.currentView);
 			if(collider.gravity.currentView != View.Entity)

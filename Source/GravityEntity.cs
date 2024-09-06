@@ -29,7 +29,6 @@ public class GravityEntity : Component {
 		};
 		gravity.setGravity = gravity => {
 			var player = (Player)gravity.Entity;
-			player.sweatSprite.Rotation = gravity.gravity.Angle();
 			if(player.CollideCheck<Solid>()) {
 				player.Ducking = true;
 			}

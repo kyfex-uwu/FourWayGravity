@@ -26,10 +26,10 @@ public class PlayerHooks {
 			 PointCheckHook
 		);
 		hook_Ducking_get = new Hook(typeof(Player).GetProperty("Ducking").GetGetMethod(), Ducking_get_fix);
-		On.Celeste.Player.Render += RotateSprite;
 		On.Celeste.Player.ctor += ConstructorHook;
 		On.Celeste.Player.ExplodeLaunch_Vector2_bool_bool += ExplodeLaunch;
 		On.Celeste.Player.BoostUpdate += BoostUpdateHook;
+		On.Celeste.Player.Pickup += PickupHook;
 		var stateMachineTarget = typeof(Player).GetMethod("DashCoroutine", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget();
 		hook_Dash_Coroutine = new ILHook(
 			stateMachineTarget,
@@ -38,18 +38,23 @@ public class PlayerHooks {
 		IL.Celeste.Player.ClimbCheck += PointCheckHook;
 		IL.Celeste.Player.OnCollideH += DashCollideHook;
 		IL.Celeste.Player.OnCollideV += DashCollideHook;
+		IL.Celeste.Player.UpdateCarry += UpdateCarryHook;
 	}
+
     public static void Unload() {
 		hook_orig_Update?.Dispose();
 		hook_orig_UpdateSprite?.Dispose();
 		hook_Ducking_get?.Dispose();
 		hook_Dash_Coroutine?.Dispose();
-		On.Celeste.Player.Render -= RotateSprite;
 		On.Celeste.Player.ctor -= ConstructorHook;
+		On.Celeste.Player.ExplodeLaunch_Vector2_bool_bool -= ExplodeLaunch;
+		On.Celeste.Player.BoostUpdate -= BoostUpdateHook;
+		On.Celeste.Player.Pickup -= PickupHook;
 		IL.Celeste.Player.SlipCheck -= PointCheckHook;
 		IL.Celeste.Player.ClimbCheck -= PointCheckHook;
 		IL.Celeste.Player.OnCollideH -= DashCollideHook;
 		IL.Celeste.Player.OnCollideV -= DashCollideHook;
+		IL.Celeste.Player.UpdateCarry -= UpdateCarryHook;
 	}
     private static void ConstructorHook(On.Celeste.Player.orig_ctor orig, Player self, Vector2 position, PlayerSpriteMode spriteMode)
     {
@@ -142,13 +147,6 @@ public class PlayerHooks {
 		}
 		return orig(self);
     }
-    private static void RotateSprite(On.Celeste.Player.orig_Render orig, Player self)
-    {
-		if(self.Collider is TransformCollider collider) {
-			self.Sprite.Rotation = collider.gravity.gravity.Angle();
-		}
-		orig(self);
-    }
 	private static Vector2 FixDashDirection(Vector2 direction, Player player) {
 		if(player.Collider is TransformCollider collider) {
 			return direction.Rotate(collider.gravity.gravity);
@@ -198,7 +196,7 @@ public class PlayerHooks {
     }
     private static Vector2 ExplodeLaunch(On.Celeste.Player.orig_ExplodeLaunch_Vector2_bool_bool orig, Player self, Vector2 from, bool snapUp, bool sidesOnly)
     {
-		Views.ActorView(self);
+		Views.EntityView(self);
 		if(self.Collider is TransformCollider collider) {
 			from = collider.gravity.origin + (from  - collider.gravity.origin).RotateInv(collider.gravity.gravity);
 			if(collider.gravity.gravity == Gravity.Left || collider.gravity.gravity == Gravity.Right) {
@@ -216,4 +214,31 @@ public class PlayerHooks {
 		Views.Pop(self);
 		return result;
     }
+
+    private static void UpdateCarryHook(ILContext il)
+    {
+		var cursor = new ILCursor(il);
+		cursor.GotoNext(i => i.MatchCallvirt<Holdable>(nameof(Holdable.Carry)));
+		cursor.EmitLdarg0();
+		cursor.EmitDelegate(FixCarryPosition);
+    }
+	private static Vector2 FixCarryPosition(Vector2 position, Player player) {
+		if(player.Collider is TransformCollider transformCollider) {
+			var before = player.Position;
+			Views.WorldView(player);
+			var playerPos = player.Position;
+			var offset = position - before;
+			Views.Pop(player);
+			return playerPos + offset.Rotate(transformCollider.gravity.gravity);
+		}
+		return position;
+	}
+    private static bool PickupHook(On.Celeste.Player.orig_Pickup orig, Player self, Holdable pickup)
+    {
+		if(pickup.Entity.Components.Get<GravityEntity>() != null && self.Collider is TransformCollider transformCollider) {
+			GravityComponent.Set(pickup.Entity, transformCollider.gravity.gravity);
+		}
+		return orig(self, pickup);
+    }
+
 }
