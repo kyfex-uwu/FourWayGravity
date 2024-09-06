@@ -6,13 +6,13 @@ using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod.RuntimeDetour;
 
+[Tracked]
 public class GravityComponent : Component
 {
 	public Gravity gravity = Gravity.Left;
 	public Vector2 origin;
-	public bool Track => currentView == View.Player;
+	public bool Track => currentView == View.Entity;
 	static Hook hook_ColliderSet;
-	public static List<Vector2> points = new ();
 	public Stack<View> viewStack = new();
 	public View currentView = View.World;
 	
@@ -20,28 +20,25 @@ public class GravityComponent : Component
     {
 		this.gravity = gravity;
     }
-	public static void Set(Player player, Gravity gravity) {
+	public static void Set(Entity entity, Gravity gravity) {
 		GravityComponent comp;
 		TransformCollider col;
-		if(player.Collider is TransformCollider collider) {
+		if(entity.Collider is TransformCollider collider) {
 			comp = collider.gravity;
 			col = collider;
 		} else {
 			comp = new GravityComponent(true, true, Gravity.Down);
-			player.Add(comp);
-			col = (TransformCollider)player.Collider;
+			entity.Add(comp);
+			col = (TransformCollider)entity.Collider;
 		}
 		if(gravity == comp.gravity)
 			return;
-		Views.WorldView(player);
-		player.Position += 4f * gravity.Dir() - 4f * comp.gravity.Dir();
-		if(player.CollideCheck<Solid>()) {
-			player.Ducking = true;
-		}
+		Views.WorldView(entity);
+		entity.Position += 4f * gravity.Dir() - 4f * comp.gravity.Dir();
 		comp.gravity = gravity;
-		Views.Pop(player);
-		player.Collider = player.Collider;
-		player.sweatSprite.Rotation = gravity.Angle();
+		entity.Components.Get<GravityEntity>().setGravity(comp);
+		Views.Pop(entity);
+		entity.Collider = entity.Collider;
 	}
 	public override void Added(Entity entity) {
 		base.Added(entity);
@@ -67,45 +64,25 @@ public class GravityComponent : Component
 				Input.Aim.Value = Input.GetAimVector(player.Facing);
 			}
 			Input.Feather.Value = Input.Feather.Value.RotateInv(gravity);
-			Views.PlayerView(player);	
 		}
+		Views.ActorView(Entity);	
     }
 	private void PostUpdate(Entity entity) {
-		Views.Pop((Player)entity);
+		Views.Pop(entity);
 	}
 	public override void Removed(Entity entity) {
 		
 	}
-	public override void DebugRender(Camera camera) {
-		if(Entity is Player player) {
-			foreach(var e in Scene.Tracker.GetEntities<Solid>()) {
-				var solid = (Solid)e;
-				if(player.IsRiding(solid) && solid is not SolidTiles) {
-					Draw.Rect(e.X, e.Y, e.Width, e.Height, Color.Yellow);
-				}
-			}
-		}
-		foreach(var point in points) {
-			Draw.Point(point, Color.Blue);
-		}
-		points.Clear();
-	}
-	public void PlayerView() {
+	public void EntityView() {
 		origin = Entity.Position;
-		var player = (Player)Entity;
-		player.Speed = player.Speed.RotateInv(gravity);		
-		player.DashDir = player.DashDir.RotateInv(gravity);
-		player.currentLiftSpeed = player.currentLiftSpeed.RotateInv(gravity);
-		player.lastLiftSpeed = player.lastLiftSpeed.RotateInv(gravity);
-		currentView = View.Player;
+		var gravityEntity = Entity.Components.Get<GravityEntity>();
+		gravityEntity.entityView(this);
+		currentView = View.Entity;
 	}
 	public void WorldView() {
-		var player = (Player)Entity;
-		Apply(player);
-		player.Speed = player.Speed.Rotate(gravity);		
-		player.DashDir = player.DashDir.Rotate(gravity);
-		player.currentLiftSpeed = player.currentLiftSpeed.Rotate(gravity);
-		player.lastLiftSpeed = player.lastLiftSpeed.Rotate(gravity);
+		Apply(Entity);
+		var gravityEntity = Entity.Components.Get<GravityEntity>();
+		gravityEntity.worldView(this);
 		currentView = View.World;
 	}
 	public void Pop() {
@@ -114,8 +91,8 @@ public class GravityComponent : Component
 		var view = viewStack.Pop();
 		if(view == currentView)
 			return;
-		if(view == View.Player) {
-			PlayerView();			
+		if(view == View.Entity) {
+			EntityView();			
 		} else {
 			WorldView();
 		}
@@ -161,7 +138,7 @@ public class GravityComponent : Component
 				Grid grid => collider.Collide(grid),
 				Circle circle => collider.Collide(circle),
 				ColliderList list => collider.Collide(list),
-				_ => throw new NotImplementedException()
+				_ => false
 			};
 		}
     }
@@ -170,5 +147,5 @@ public enum Gravity {
 	Up, Down, Left, Right
 }
 public enum View {
-	Player, World
+	Entity, World
 }

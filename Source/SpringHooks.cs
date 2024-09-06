@@ -16,7 +16,7 @@ public class SpringHooks {
     private static void OnCollideHook(On.Celeste.Spring.orig_OnCollide orig, Celeste.Spring self, Celeste.Player player)
     {
 		if(player.Collider is TransformCollider transformCollider) {
-			Views.PlayerView(player);
+			Views.ActorView(player);
 			var orientation = self.Orientation;
 			var dir = orientation switch {
 				Spring.Orientations.Floor => Vector2.UnitY,
@@ -32,7 +32,7 @@ public class SpringHooks {
 			} else if(dir == -Vector2.UnitX) {
 				self.Orientation = Spring.Orientations.WallRight;
 			} else {
-				Views.PlayerView(player);
+				Views.ActorView(player);
 				return;
 			}
 			orig(self, player);

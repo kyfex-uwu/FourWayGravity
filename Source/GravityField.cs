@@ -17,12 +17,14 @@ public class GravityField : Entity {
 			"up" => Gravity.Up,
 			_ => Gravity.Down
 		};
-		Add(new PlayerCollider(OnPlayer));
 	}
-    private void OnPlayer(Player player)
-    {
-		GravityComponent.Set(player, gravity);
-    }
+	public override void Update() {
+		foreach(var gravity in Scene.Tracker.GetComponents<GravityEntity>()) {
+			if(gravity.Entity.CollideCheck(this)) {
+				GravityComponent.Set(gravity.Entity, this.gravity);
+			}
+		}
+	}
 	public override void Render() {
 		var color = gravity switch {
 			Gravity.Left => Color.Green,

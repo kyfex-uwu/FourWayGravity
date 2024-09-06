@@ -60,22 +60,22 @@ public static class Extensions {
 	}
 }
 public static class Views {
-	public static void PlayerView(Player player) {
-		if(player.Collider is TransformCollider collider) {
+	public static void ActorView(Entity entity) {
+		if(entity.Collider is TransformCollider collider) {
 			collider.gravity.viewStack.Push(collider.gravity.currentView);
-			if(collider.gravity.currentView != View.Player)
-				collider.gravity.PlayerView();
+			if(collider.gravity.currentView != View.Entity)
+				collider.gravity.EntityView();
 		}
 	}
-	public static void WorldView(Player player) {
-		if(player.Collider is TransformCollider collider) {
+	public static void WorldView(Entity entity) {
+		if(entity.Collider is TransformCollider collider) {
 			collider.gravity.viewStack.Push(collider.gravity.currentView);
 			if(collider.gravity.currentView != View.World)
 				collider.gravity.WorldView();
 		}
 	}
-	public static void Pop(Player player) {
-		if(player.Collider is TransformCollider collider) {
+	public static void Pop(Entity entity) {
+		if(entity.Collider is TransformCollider collider) {
 			collider.gravity.Pop();
 		}
 	}
