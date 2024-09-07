@@ -1,5 +1,6 @@
 using System;
 using Celeste;
+using Celeste.Mod;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod.Cil;
@@ -11,7 +12,6 @@ public class HoldableHooks {
 		On.Celeste.Holdable.Release += ReleaseHook;
 		IL.Celeste.Glider.Update += JellyUpdateHook;
 	}
-
     public static void Unload() {
 		On.Celeste.TheoCrystal.Added -= TheoAddedHook;
 		On.Celeste.Glider.Added -= JellyAddedHook;

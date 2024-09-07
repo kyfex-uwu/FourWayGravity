@@ -21,6 +21,9 @@ public class GravityComponent : Component
 		this.gravity = gravity;
     }
 	public static void Set(Entity entity, Gravity gravity) {
+		if(entity.Components.Get<GravityEntity>() == null) {
+			return;
+		}
 		GravityComponent comp;
 		TransformCollider col;
 		if(entity.Collider is TransformCollider collider) {
@@ -36,8 +39,8 @@ public class GravityComponent : Component
 		Views.WorldView(entity);
 		entity.Position += 4f * gravity.Dir() - 4f * comp.gravity.Dir();
 		comp.gravity = gravity;
-		foreach(var sprite in entity.Components.GetAll<Sprite>()) {
-			sprite.Rotation = gravity.Angle();
+		foreach(var graphics in entity.Components.GetAll<GraphicsComponent>()) {
+			graphics.Rotation = gravity.Angle();
 		}
 		entity.Components.Get<GravityEntity>().setGravity(comp);
 		Views.Pop(entity);
