@@ -19,6 +19,10 @@ public static class Extensions {
 			_ => v
 		};
 	}
+	public static Vector2 RotateAround(this Vector2 v, Vector2 origin, Gravity gravity) {
+		var offset = v - origin;
+		return origin + offset.Rotate(gravity);
+	}
 	public static Hitbox Rotate(this Hitbox hitbox, Gravity gravity) {
 		var a = hitbox.TopLeft.Rotate(gravity);
 		var b = hitbox.BottomRight.Rotate(gravity);
@@ -56,6 +60,13 @@ public static class Extensions {
 			Gravity.Up => (float)Math.PI,
 			Gravity.Right => -(float)Math.PI / 2f,
 			_ => 0f
+		};
+	}
+	public static bool Horizontal(this Gravity g) {
+		return g switch {
+			Gravity.Left => true,
+			Gravity.Right => true,
+			_ => false
 		};
 	}
 }

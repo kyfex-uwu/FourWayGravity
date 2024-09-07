@@ -29,6 +29,7 @@ public class PlayerHooks {
 		On.Celeste.Player.ctor += ConstructorHook;
 		On.Celeste.Player.ExplodeLaunch_Vector2_bool_bool += ExplodeLaunch;
 		On.Celeste.Player.BoostUpdate += BoostUpdateHook;
+		On.Celeste.Player.BoostEnd += BoostEndHook;
 		On.Celeste.Player.Pickup += PickupHook;
 		var stateMachineTarget = typeof(Player).GetMethod("DashCoroutine", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget();
 		hook_Dash_Coroutine = new ILHook(
@@ -49,6 +50,7 @@ public class PlayerHooks {
 		On.Celeste.Player.ctor -= ConstructorHook;
 		On.Celeste.Player.ExplodeLaunch_Vector2_bool_bool -= ExplodeLaunch;
 		On.Celeste.Player.BoostUpdate -= BoostUpdateHook;
+		On.Celeste.Player.BoostEnd -= BoostEndHook;
 		On.Celeste.Player.Pickup -= PickupHook;
 		IL.Celeste.Player.SlipCheck -= PointCheckHook;
 		IL.Celeste.Player.ClimbCheck -= PointCheckHook;
@@ -236,9 +238,16 @@ public class PlayerHooks {
     private static bool PickupHook(On.Celeste.Player.orig_Pickup orig, Player self, Holdable pickup)
     {
 		if(pickup.Entity.Components.Get<GravityEntity>() != null && self.Collider is TransformCollider transformCollider) {
+			pickup.Entity.Position = pickup.Entity.Position.RotateAround(self.Position, transformCollider.gravity.gravity.Inv());
 			GravityComponent.Set(pickup.Entity, transformCollider.gravity.gravity);
 		}
 		return orig(self, pickup);
+    }
+    private static void BoostEndHook(On.Celeste.Player.orig_BoostEnd orig, Player self)
+    {
+		Views.WorldView(self);
+		orig(self);
+		Views.Pop(self);
     }
 
 }

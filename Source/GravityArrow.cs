@@ -7,7 +7,6 @@ using Monocle;
 [CustomEntity("GravityHelperGV/GravityArrow")]
 public class GravityArrow : Entity {
 	Gravity gravity;
-	Entity attached;
 	Vector2 offset;
 	public GravityArrow(EntityData data, Vector2 offset) {
 		Position = data.Position + offset;
@@ -23,12 +22,12 @@ public class GravityArrow : Entity {
 	public override void Awake(Scene scene) {
 		foreach(Entity entity in scene) {
 			if(CollideCheck(entity)) {
-				attached = entity;
+				if(entity is not GravityArrow) {
+					var comp = new GravityArrowComponent(gravity, Position - entity.Position);
+					entity.Add(comp);
+					break;
+				}
 			}	
-		}
-		if(attached != null) {
-			var comp = new GravityArrowComponent(gravity, Position - attached.Position);
-			attached.Add(comp);
 		}
 		RemoveSelf();
 	}
