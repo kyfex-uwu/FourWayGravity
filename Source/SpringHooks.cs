@@ -38,7 +38,10 @@ public class SpringHooks {
 			} else if(dir == -Vector2.UnitX) {
 				self.Orientation = Spring.Orientations.WallRight;
 			} else {
-				self.Orientation = Spring.Orientations.Floor;
+				self.Orientation = orientation;
+				self.Collider = prevHitbox;
+				Views.Pop(entity);
+				return;
 			}
 			self.Collider = hitbox;
 			orig(self, entity);			
@@ -76,7 +79,10 @@ public class SpringHooks {
 			} else if(dir == -Vector2.UnitX) {
 				self.Orientation = Spring.Orientations.WallRight;
 			} else {
-				self.Orientation = Spring.Orientations.Floor;
+				self.Orientation = orientation;
+				self.Collider = prevHitbox;
+				Views.Pop(entity);
+				return;
 			}
 			self.Collider = hitbox;
 			orig(self, holdable);			

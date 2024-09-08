@@ -127,10 +127,20 @@ public class PlayerHooks {
 			
 			cursor.Index = 0;
 			cursor.GotoNext(MoveType.Before, i => i.MatchCallvirt<SpeedRing>(nameof(SpeedRing.Init)));
-			var method = typeof(Monocle.Calc).GetMethods().Where(method => method.GetParameters().Length == 1 && method.Name == "Angle").First();
-			cursor.GotoPrev(MoveType.Before, i => i.MatchCall(method));
+			cursor.GotoPrev(MoveType.Before, i => i.MatchCall<Entity>("get_Center"));
 			cursor.EmitLdarg0();
-			cursor.EmitDelegate(FixDashDirection);
+			cursor.EmitDelegate(Views.WorldView);
+			cursor.GotoNext(MoveType.After, i => i.MatchCallvirt<SpeedRing>(nameof(SpeedRing.Init)));
+			cursor.EmitLdarg0();
+			cursor.EmitDelegate(Views.Pop);
+
+			cursor.Index = 0;
+			cursor.GotoNext(i => i.MatchCall(typeof(Actor).GetMethod("MoveHExact")));
+			cursor.EmitLdarg0();
+			cursor.EmitDelegate(Views.WorldView);
+			cursor.GotoNext(MoveType.After, i => i.MatchCall(typeof(Actor).GetMethod("MoveVExact")));
+			cursor.EmitLdarg0();
+			cursor.EmitDelegate(Views.Pop);
 		} catch(Exception e) {
 			Logger.Log(LogLevel.Info, "GHGV", $"Update hook failed {e}");
 		}
@@ -237,11 +247,12 @@ public class PlayerHooks {
 	}
     private static bool PickupHook(On.Celeste.Player.orig_Pickup orig, Player self, Holdable pickup)
     {
-		if(pickup.Entity.Components.Get<GravityEntity>() != null && self.Collider is TransformCollider transformCollider) {
+		var result = orig(self, pickup);
+		if(result && pickup.Entity.Components.Get<GravityEntity>() != null && self.Collider is TransformCollider transformCollider) {
 			pickup.Entity.Position = pickup.Entity.Position.RotateAround(self.Position, transformCollider.gravity.gravity.Inv());
 			GravityComponent.Set(pickup.Entity, transformCollider.gravity.gravity);
 		}
-		return orig(self, pickup);
+		return result;
     }
     private static void BoostEndHook(On.Celeste.Player.orig_BoostEnd orig, Player self)
     {
@@ -249,5 +260,4 @@ public class PlayerHooks {
 		orig(self);
 		Views.Pop(self);
     }
-
 }

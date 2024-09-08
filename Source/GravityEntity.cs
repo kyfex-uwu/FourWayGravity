@@ -32,6 +32,9 @@ public class GravityEntity : Component {
 			if(player.CollideCheck<Solid>()) {
 				player.Ducking = true;
 			}
+			if(player.Holding != null) {
+				GravityComponent.Set(player.Holding.Entity, gravity.gravity);
+			}
 		};
 		return gravity;
 	}
