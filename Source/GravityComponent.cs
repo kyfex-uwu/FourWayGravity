@@ -75,20 +75,10 @@ public class GravityComponent : Component
 	}
     private void PreUpdate(Entity entity)
     {
-		if(Entity is Player player) {
-			var move = new Vector2(Input.MoveX, Input.MoveY).RotateInv(gravity);
-			Input.MoveX.Value = (int)move.X;
-			Input.MoveY.Value = (int)move.Y;
-			if(Input.Aim.Value != Vector2.Zero) {
-				Input.Aim.Value = Input.GetAimVector(player.Facing).RotateInv(gravity);
-			} else {
-				Input.Aim.Value = Input.GetAimVector(player.Facing);
-			}
-			Input.Feather.Value = Input.Feather.Value.RotateInv(gravity);
-		}
 		Views.EntityView(Entity);	
     }
 	private void PostUpdate(Entity entity) {
+
 		Views.Pop(entity);
 	}
 	public override void Removed(Entity entity) {

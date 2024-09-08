@@ -145,7 +145,15 @@ public class PlayerHooks {
 			Logger.Log(LogLevel.Info, "GHGV", $"Update hook failed {e}");
 		}
     }
-	
+	private static void BurstFix(ILContext il) 
+	{		
+		var cursor = new ILCursor(il);
+		var method = typeof(Dust).GetMethods().Where(
+			method => method.Name == "Burst" && method.GetParameters().Length == 4
+		).First();
+		while(cursor.TryGotoNext(i => i.MatchCall(method))) {			
+		}
+	}
 	private static void CollideFix(Player player, Collider tmp) {
 		if(player.Collider is TransformCollider collider) {
 			if(collider.source == player.hurtbox)
