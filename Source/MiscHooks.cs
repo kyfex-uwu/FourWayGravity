@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using Celeste;
 using Microsoft.Xna.Framework;
@@ -13,6 +14,7 @@ public class MiscHooks
         On.Celeste.BounceBlock.WindUpPlayerCheck += WindUpPlayerCheck;
         On.Celeste.DashBlock.OnDashed += DashBlockHook;
         On.Monocle.Entity.Awake += GetArrows;
+        On.Celeste.Bumper.OnPlayer += BumperHook;
         MoveBlockController = new ILHook(typeof(MoveBlock).GetMethod("Controller", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget(), ControllerHook);
     }
     public static void Unload()
@@ -21,7 +23,16 @@ public class MiscHooks
         On.Celeste.BounceBlock.WindUpPlayerCheck -= WindUpPlayerCheck;
         On.Celeste.DashBlock.OnDashed -= DashBlockHook;
         On.Monocle.Entity.Awake -= GetArrows;
+        On.Celeste.Bumper.OnPlayer -= BumperHook;
         MoveBlockController?.Dispose();
+    }
+
+    private static void BumperHook(On.Celeste.Bumper.orig_OnPlayer orig, Bumper self, Player player)
+    {
+        if(self.respawnTimer <= 0f) {
+            GravityArrow.ApplyArrows(self, player);
+        }
+        orig(self, player);
     }
 
     private static DashCollisionResults DashBlockHook(On.Celeste.DashBlock.orig_OnDashed orig, DashBlock self, Player player, Vector2 direction)
@@ -72,7 +83,7 @@ public class MiscHooks
     private static void GetArrows(On.Monocle.Entity.orig_Awake orig, Monocle.Entity self, Monocle.Scene scene)
     {
         orig(self, scene);
-        if (self is Spring || self is DashBlock)
+        if (self is Spring || self is DashBlock || self is Bumper)
         {
             GravityArrow.GetArrows(self);
         }

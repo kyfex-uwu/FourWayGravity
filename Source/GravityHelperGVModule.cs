@@ -47,8 +47,10 @@ public class GravityHelperGVModule : EverestModule
         orig(self, session, startPosition);
         if (session.MapData.Levels.Any(level => level.Entities.Any(data => data.Name == "GravityHelperGV/GravityArrow")))
         {
-            hooksLoaded = true;
-            LoadHooks();
+            if(!hooksLoaded) {
+                hooksLoaded = true;
+                LoadHooks();
+            }
         }
     }
     private static void LevelUnload(On.Celeste.OverworldLoader.orig_ctor orig, OverworldLoader self, Overworld.StartMode startMode, HiresSnow snow)
