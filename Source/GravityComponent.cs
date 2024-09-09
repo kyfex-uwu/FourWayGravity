@@ -72,7 +72,7 @@ public class GravityComponent : Component
         var prevGravity = comp.gravity;
         comp.gravity = gravity;
         entity.Collider = entity.Collider;
-        if (!entity.Components.Get<GravityEntity>().setGravity(comp))
+        if (!entity.Components.Get<GravityEntity>().setGravity?.Invoke(comp) ?? true)
         {
             entity.Position = prevPos;
             comp.gravity = prevGravity;
@@ -116,14 +116,14 @@ public class GravityComponent : Component
     {
         origin = Entity.Position;
         var gravityEntity = Entity.Components.Get<GravityEntity>();
-        gravityEntity.entityView(this);
+        gravityEntity.entityView?.Invoke(this);
         currentView = View.Entity;
     }
     public void WorldView()
     {
         Apply(Entity);
         var gravityEntity = Entity.Components.Get<GravityEntity>();
-        gravityEntity.worldView(this);
+        gravityEntity.worldView?.Invoke(this);
         currentView = View.World;
     }
     public void Pop()

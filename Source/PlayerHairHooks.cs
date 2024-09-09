@@ -41,7 +41,9 @@ public class PlayerHairHooks
         {
             hair.Nodes[0] += offset.Rotate(collider.gravity.gravity);
         }
-        else
+        else if(hair.Entity is BadelineOldsite chaser) {
+            hair.Nodes[0] += offset.Rotate(chaser.Sprite.Rotation);
+        } else
         {
             hair.Nodes[0] += offset;
         }
@@ -76,6 +78,9 @@ public class PlayerHairHooks
         if (hair.Sprite.Entity.Collider is TransformCollider collider)
         {
             return collider.gravity.gravity.Angle();
+        }
+        if(hair.Sprite.Entity is BadelineOldsite chaser) {
+            return chaser.Sprite.Rotation;
         }
         return 0f;
     }

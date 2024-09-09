@@ -75,6 +75,7 @@ public class GravityHelperGVModule : EverestModule
         MoonBlockHooks.Load();
         MiscHooks.Load();
         HoldableHooks.Load();
+        BadelineChaserHooks.Load();
     }
     public static void UnloadHooks()
     {
@@ -88,5 +89,6 @@ public class GravityHelperGVModule : EverestModule
         MoonBlockHooks.Unload();
         MiscHooks.Unload();
         HoldableHooks.Unload();
+        BadelineChaserHooks.Unload();
     }
 }
