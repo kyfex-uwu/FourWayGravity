@@ -30,8 +30,8 @@ public class SolidHooks {
 			);
 			cursor.EmitLdarg0();
 			cursor.EmitDelegate(CorrectOffset);
-		} catch {
-			Logger.Log(LogLevel.Info, "GHGV", "GetPlayerOnTop hook failed");
+		} catch(Exception e) {
+			Logger.Warn("GHGV", $"GetPlayerOnTop hook failed {e}");
 		}
     }
 	private static Vector2 CorrectOffsetClimb(Vector2 v, Player player) {
@@ -52,8 +52,8 @@ public class SolidHooks {
 				cursor.EmitLdloc1();
 				cursor.EmitDelegate(CorrectOffsetClimb);
 			}
-		} catch {
-			
+		} catch(Exception e) {
+			Logger.Warn("GHGV", $"GetPlayerClimbing hook failed: {e}");
 		}
     }
 }

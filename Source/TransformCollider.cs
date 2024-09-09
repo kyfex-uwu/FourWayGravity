@@ -7,10 +7,6 @@ public class TransformCollider : Collider {
 	public Hitbox source;
 	public Hitbox hitbox;
 	public Vector2 offset;
-	public Vector2 move;
-	public Vector2 moveFrom;
-	public Vector2 checkFrom;
-	public Vector2 checkAt;
 	public GravityComponent gravity;
     public override float Width { 
 		get {

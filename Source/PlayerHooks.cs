@@ -81,7 +81,6 @@ public class PlayerHooks {
 		var method = typeof(Level)
 			.GetMethod("CollideCheck", new Type[] { typeof(Vector2) })
 			.MakeGenericMethod(new Type[] { typeof(Solid) });
-		Logger.Log(LogLevel.Info, "GHGV", $"{method}");
 		while(cursor.TryGotoNext(
 			MoveType.Before,
 			i => i.MatchCallvirt(method)
@@ -142,18 +141,9 @@ public class PlayerHooks {
 			cursor.EmitLdarg0();
 			cursor.EmitDelegate(Views.Pop);
 		} catch(Exception e) {
-			Logger.Log(LogLevel.Info, "GHGV", $"Update hook failed {e}");
+			Logger.Warn("GHGV", $"Update hook failed {e}");
 		}
     }
-	private static void BurstFix(ILContext il) 
-	{		
-		var cursor = new ILCursor(il);
-		var method = typeof(Dust).GetMethods().Where(
-			method => method.Name == "Burst" && method.GetParameters().Length == 4
-		).First();
-		while(cursor.TryGotoNext(i => i.MatchCall(method))) {			
-		}
-	}
 	private static void CollideFix(Player player, Collider tmp) {
 		if(player.Collider is TransformCollider collider) {
 			if(collider.source == player.hurtbox)
@@ -181,7 +171,6 @@ public class PlayerHooks {
 			MoveType.Before,
 			i => i.MatchCallvirt(method)
 		)) {
-			Logger.Log(LogLevel.Info, "GHGV", "Dash patch");
 			cursor.EmitLdarg0();
 			cursor.EmitDelegate(FixDashDirection);
 			cursor.EmitLdarg0();
@@ -237,11 +226,15 @@ public class PlayerHooks {
 
     private static void UpdateCarryHook(ILContext il)
     {
-		var cursor = new ILCursor(il);
-		cursor.GotoNext(i => i.MatchCallvirt<Holdable>(nameof(Holdable.Carry)));
-		cursor.EmitLdarg0();
-		cursor.EmitDelegate(FixCarryPosition);
-    }
+		try {		
+			var cursor = new ILCursor(il);
+			cursor.GotoNext(i => i.MatchCallvirt<Holdable>(nameof(Holdable.Carry)));
+			cursor.EmitLdarg0();
+			cursor.EmitDelegate(FixCarryPosition);
+		} catch(Exception e) {
+			Logger.Warn("GHGV", $"UpdateCarry hook failed to load {e}");
+		}
+	}
 	private static Vector2 FixCarryPosition(Vector2 position, Player player) {
 		if(player.Collider is TransformCollider transformCollider) {
 			var before = player.Position;
