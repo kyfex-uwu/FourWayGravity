@@ -14,7 +14,8 @@ public class SolidHooks
     }
     public static void Unload()
     {
-
+        IL.Celeste.Solid.GetPlayerClimbing -= GetPlayerClimbing;
+        IL.Celeste.Solid.GetPlayerOnTop -= GetPlayerOnTop;
     }
     private static Vector2 CorrectOffset(Vector2 v, Solid solid)
     {

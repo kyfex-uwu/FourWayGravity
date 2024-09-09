@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using Microsoft.Xna.Framework;
 
 namespace Celeste.Mod.GravityHelperGV;
 
@@ -29,6 +31,39 @@ public class GravityHelperGVModule : EverestModule
 
     public override void Load()
     {
+        On.Celeste.LevelLoader.ctor += LevelLoad;
+        On.Celeste.OverworldLoader.ctor += LevelUnload;
+    }
+    public override void Unload()
+    {
+        On.Celeste.LevelLoader.ctor -= LevelLoad;
+        On.Celeste.OverworldLoader.ctor -= LevelUnload;
+    }
+
+
+    static bool hooksLoaded = false;
+    private static void LevelLoad(On.Celeste.LevelLoader.orig_ctor orig, LevelLoader self, Session session, Vector2? startPosition)
+    {
+        orig(self, session, startPosition);
+        if (session.MapData.Levels.Any(level => level.Entities.Any(data => data.Name == "GravityHelperGV/GravityArrow")))
+        {
+            hooksLoaded = true;
+            LoadHooks();
+        }
+    }
+    private static void LevelUnload(On.Celeste.OverworldLoader.orig_ctor orig, OverworldLoader self, Overworld.StartMode startMode, HiresSnow snow)
+    {
+        orig(self, startMode, snow);
+        if (hooksLoaded)
+        {
+            UnloadHooks();
+            hooksLoaded = false;
+        }
+    }
+
+    public static void LoadHooks()
+    {
+        Logger.Info("GHGV", "Loading hooks");
         GravityComponent.SetHooks();
         ControlHooks.Load();
         PlayerHooks.Load();
@@ -39,8 +74,9 @@ public class GravityHelperGVModule : EverestModule
         MiscHooks.Load();
         HoldableHooks.Load();
     }
-    public override void Unload()
+    public static void UnloadHooks()
     {
+        Logger.Info("GHGV", "Unloading hooks");
         GravityComponent.RemoveHooks();
         ControlHooks.Unload();
         PlayerHooks.Unload();

@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using Celeste;
 using Microsoft.Xna.Framework;
@@ -72,6 +71,7 @@ public class MiscHooks
 
     private static void GetArrows(On.Monocle.Entity.orig_Awake orig, Monocle.Entity self, Monocle.Scene scene)
     {
+        orig(self, scene);
         if (self is Spring || self is DashBlock)
         {
             GravityArrow.GetArrows(self);

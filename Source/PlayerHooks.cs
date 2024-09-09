@@ -4,7 +4,6 @@ using System.Reflection;
 using Celeste;
 using Celeste.Mod;
 using Microsoft.Xna.Framework;
-using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Monocle;
 using MonoMod.Cil;
@@ -17,7 +16,6 @@ public class PlayerHooks
     static ILHook hook_orig_UpdateSprite;
     static ILHook hook_Dash_Coroutine;
     static Hook hook_Ducking_get;
-    static Type dashCoroutineType;
     delegate bool orig_Ducking_get(Player self);
     public static void Load()
     {
