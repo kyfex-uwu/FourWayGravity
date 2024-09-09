@@ -1,0 +1,6 @@
+mods.GravityHelperGV.name=GravityHelperGV
+entities.GravityHelperGV/GravityArrow.placements.name.arrow_down=Gravity Arrow (Down)
+entities.GravityHelperGV/GravityArrow.placements.name.arrow_left=Gravity Arrow (Left)
+entities.GravityHelperGV/GravityArrow.placements.name.arrow_right=Gravity Arrow (Right)
+entities.GravityHelperGV/GravityArrow.placements.name.arrow_up=Gravity Arrow (Up)
+entities.GravityHelperGV/GravityField.placements.name.gravityField=Gravity Field
