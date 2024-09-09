@@ -2,19 +2,21 @@
 
 namespace Celeste.Mod.GravityHelperGV;
 
-public class GravityHelperGVModule : EverestModule {
+public class GravityHelperGVModule : EverestModule
+{
     public static GravityHelperGVModule Instance { get; private set; }
 
     public override Type SettingsType => typeof(GravityHelperGVModuleSettings);
-    public static GravityHelperGVModuleSettings Settings => (GravityHelperGVModuleSettings) Instance._Settings;
+    public static GravityHelperGVModuleSettings Settings => (GravityHelperGVModuleSettings)Instance._Settings;
 
     public override Type SessionType => typeof(GravityHelperGVModuleSession);
-    public static GravityHelperGVModuleSession Session => (GravityHelperGVModuleSession) Instance._Session;
+    public static GravityHelperGVModuleSession Session => (GravityHelperGVModuleSession)Instance._Session;
 
     public override Type SaveDataType => typeof(GravityHelperGVModuleSaveData);
-    public static GravityHelperGVModuleSaveData SaveData => (GravityHelperGVModuleSaveData) Instance._SaveData;
+    public static GravityHelperGVModuleSaveData SaveData => (GravityHelperGVModuleSaveData)Instance._SaveData;
 
-    public GravityHelperGVModule() {
+    public GravityHelperGVModule()
+    {
         Instance = this;
 #if DEBUG
         // debug builds use verbose logging
@@ -25,7 +27,8 @@ public class GravityHelperGVModule : EverestModule {
 #endif
     }
 
-    public override void Load() {
+    public override void Load()
+    {
         GravityComponent.SetHooks();
         ControlHooks.Load();
         PlayerHooks.Load();
@@ -36,7 +39,8 @@ public class GravityHelperGVModule : EverestModule {
         MiscHooks.Load();
         HoldableHooks.Load();
     }
-    public override void Unload() {
+    public override void Unload()
+    {
         GravityComponent.RemoveHooks();
         ControlHooks.Unload();
         PlayerHooks.Unload();

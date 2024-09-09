@@ -1,5 +1,6 @@
 namespace Celeste.Mod.GravityHelperGV;
 
-public class GravityHelperGVModuleSettings : EverestModuleSettings {
+public class GravityHelperGVModuleSettings : EverestModuleSettings
+{
 
 }
