@@ -7,7 +7,7 @@ using Monocle;
 public class GravityEntity : Component {
 	public Action<GravityComponent> entityView;
 	public Action<GravityComponent> worldView;
-	public Action<GravityComponent> setGravity;
+	public Func<GravityComponent, bool> setGravity;
 
     public GravityEntity() : base(false, false)
     {
@@ -23,6 +23,7 @@ public class GravityEntity : Component {
 			var move = new Vector2(Input.MoveX, Input.MoveY).RotateInv(gravity.gravity);
 			Input.MoveX.Value = (int)move.X;
 			Input.MoveY.Value = (int)move.Y;
+			Input.GliderMoveY.Value = (int)move.Y;
 			if(Input.Aim.Value != Vector2.Zero) {
 				Input.Aim.Value = Input.GetAimVector(player.Facing).RotateInv(gravity.gravity);
 			} else {
@@ -39,6 +40,7 @@ public class GravityEntity : Component {
 			var move = new Vector2(Input.MoveX, Input.MoveY).Rotate(gravity.gravity);
 			Input.MoveX.Value = (int)move.X;
 			Input.MoveY.Value = (int)move.Y;
+			Input.GliderMoveY.Value = (int)move.Y;
 			if(Input.Aim.Value != Vector2.Zero) {
 				Input.Aim.Value = Input.GetAimVector(player.Facing).Rotate(gravity.gravity);
 			} else {
@@ -54,6 +56,7 @@ public class GravityEntity : Component {
 			if(player.Holding != null) {
 				GravityComponent.Set(player.Holding.Entity, gravity.gravity);
 			}
+			return true;
 		};
 		return gravity;
 	}

@@ -59,7 +59,7 @@ public class SpringHooks {
 		var gravity = entity.Components.Get<GravityComponent>(); 
 		if(gravity != null) {
 
-	var hitbox = ((Hitbox)self.Collider).Rotate(gravity.gravity.Inv());
+			var hitbox = ((Hitbox)self.Collider).Rotate(gravity.gravity.Inv());
 			hitbox.Position -= (self.Position - entity.Position);
 			hitbox.Position += (self.Position - entity.Position).Rotate(gravity.gravity.Inv());
 			Views.EntityView(entity);

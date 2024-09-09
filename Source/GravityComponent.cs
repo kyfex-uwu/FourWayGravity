@@ -36,7 +36,9 @@ public class GravityComponent : Component
 		}
 		if(gravity == comp.gravity)
 			return;
+		var gravityEntity = entity.Components.Get<GravityEntity>();
 		Views.WorldView(entity);
+		var prevPos = entity.Position;
 		if(gravity == comp.gravity.Opposite()) {
 			if(gravity.Horizontal()) {
 				entity.Position += entity.Width * gravity.Dir();
@@ -53,11 +55,17 @@ public class GravityComponent : Component
 			half = (int)half;
 			entity.Position += half * gravity.Dir() - half * comp.gravity.Dir();
 		}
+		var prevGravity = comp.gravity;
 		comp.gravity = gravity;
+		if(!entity.Components.Get<GravityEntity>().setGravity(comp)) {
+			entity.Position = prevPos;
+			comp.gravity = prevGravity;
+			Views.Pop(entity);
+			return;
+		}
 		foreach(var graphics in entity.Components.GetAll<GraphicsComponent>()) {
 			graphics.Rotation = gravity.Angle();
 		}
-		entity.Components.Get<GravityEntity>().setGravity(comp);
 		Views.Pop(entity);
 		entity.Collider = entity.Collider;
 	}
