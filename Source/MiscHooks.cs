@@ -62,19 +62,31 @@ public class MiscHooks
         var cursor = new ILCursor(il);
         cursor.GotoNext(MoveType.After, i => i.MatchCallvirt<Solid>("HasPlayerOnTop"));
         cursor.EmitLdloc1();
-        cursor.EmitDelegate(InvertMoveBlockCond);
+        cursor.EmitDelegate(InvertPlayerOnTop);
         cursor.GotoNext(MoveType.After, i => i.MatchCallvirt<Solid>("HasPlayerClimbing"));
         cursor.EmitLdloc1();
-        cursor.EmitDelegate(InvertMoveBlockCond);
+        cursor.EmitDelegate(InvertPlayerClimbing);
     }
-    private static bool InvertMoveBlockCond(bool cond, MoveBlock block)
+    private static bool InvertPlayerOnTop(bool cond, MoveBlock block)
     {
         var player = block.Scene.Tracker.GetEntity<Player>();
         if (player?.Collider is TransformCollider transformCollider)
         {
             if (transformCollider.gravity.gravity.Horizontal())
             {
-                return !cond;
+                return block.HasPlayerClimbing();
+            }
+        }
+        return cond;
+    }
+    private static bool InvertPlayerClimbing(bool cond, MoveBlock block)
+    {
+        var player = block.Scene.Tracker.GetEntity<Player>();
+        if (player?.Collider is TransformCollider transformCollider)
+        {
+            if (transformCollider.gravity.gravity.Horizontal())
+            {
+                return block.HasPlayerOnTop();
             }
         }
         return cond;

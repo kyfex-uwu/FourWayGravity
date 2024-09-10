@@ -32,7 +32,7 @@ public class GravityArrow : Entity
             arrow.RemoveSelf();
         }
     }
-    public static void ApplyArrows(Entity arrows, Entity gravity)
+    public static bool ApplyArrows(Entity arrows, Entity gravity)
     {
         var prevGravity = Gravity.Down;
         var gravityComp = gravity.Components.Get<GravityComponent>();
@@ -44,10 +44,10 @@ public class GravityArrow : Entity
         {
             if (arrow.gravity != prevGravity)
             {
-                GravityComponent.Set(gravity, arrow.gravity);
-                return;
+                return GravityComponent.Set(gravity, arrow.gravity);
             }
         }
+        return false;
     }
 }
 public class GravityArrowComponent : Component

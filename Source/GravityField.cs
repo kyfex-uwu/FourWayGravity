@@ -27,8 +27,9 @@ public class GravityField : Entity
         {
             if (!inside.Contains(gravity.Entity) && gravity.Entity.CollideCheck(this))
             {
-                GravityArrow.ApplyArrows(this, gravity.Entity);
-                inside.Add(gravity.Entity);
+                if(GravityArrow.ApplyArrows(this, gravity.Entity)) {
+                    inside.Add(gravity.Entity);
+                }
             }
         }
         foreach (var entity in inside)

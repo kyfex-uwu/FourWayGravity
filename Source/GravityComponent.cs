@@ -20,11 +20,11 @@ public class GravityComponent : Component
     {
         this.gravity = gravity;
     }
-    public static void Set(Entity entity, Gravity gravity)
+    public static bool Set(Entity entity, Gravity gravity)
     {
         if (entity.Components.Get<GravityEntity>() == null)
         {
-            return;
+            return false;
         }
         GravityComponent comp;
         TransformCollider col;
@@ -40,7 +40,7 @@ public class GravityComponent : Component
             col = (TransformCollider)entity.Collider;
         }
         if (gravity == comp.gravity)
-            return;
+            return false;
         var gravityEntity = entity.Components.Get<GravityEntity>();
         Views.WorldView(entity);
         var prevPos = entity.Position;
@@ -77,13 +77,14 @@ public class GravityComponent : Component
             entity.Position = prevPos;
             comp.gravity = prevGravity;
             Views.Pop(entity);
-            return;
+            return false;
         }
         foreach (var graphics in entity.Components.GetAll<GraphicsComponent>())
         {
             graphics.Rotation = gravity.Angle();
         }
         Views.Pop(entity);
+        return true;
     }
     public override void Added(Entity entity)
     {

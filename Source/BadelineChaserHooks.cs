@@ -78,7 +78,6 @@ public struct GravityState {
 		this.time = time;
 		this.gravity = gravity;
 	}
-	
 }
 public class ChaserGravityStates : Component {
 	public List<GravityState> states = new ();

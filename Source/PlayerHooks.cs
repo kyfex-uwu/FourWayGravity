@@ -54,7 +54,7 @@ public class PlayerHooks
         On.Celeste.Player.BoostUpdate -= BoostUpdateHook;
         On.Celeste.Player.BoostEnd -= BoostEndHook;
         On.Celeste.Player.Pickup -= PickupHook;
-        On.Celeste.Player.AttractUpdate += AttractUpdateHook;
+        On.Celeste.Player.AttractUpdate -= AttractUpdateHook;
         IL.Celeste.Player.SlipCheck -= PointCheckHook;
         IL.Celeste.Player.ClimbCheck -= PointCheckHook;
         IL.Celeste.Player.OnCollideH -= DashCollideHook;
