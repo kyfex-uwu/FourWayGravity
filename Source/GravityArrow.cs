@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 using Monocle;
 
 [Tracked]
-[CustomEntity("GravityHelperGV/GravityArrow")]
+[CustomEntity("FourWayGravity/GravityArrow")]
 public class GravityArrow : Entity
 {
     Gravity gravity;
@@ -61,7 +61,7 @@ public class GravityArrowComponent : Component
     }
     public override void Added(Entity entity)
     {
-        var img = new Image(GFX.Game["objects/GravityHelperGV/gravityArrow"]);
+        var img = new Image(GFX.Game["objects/FourWayGravity/gravityArrow"]);
         img.CenterOrigin();
         img.Position = offset;
         img.Rotation = gravity.Angle() + 3.141f;

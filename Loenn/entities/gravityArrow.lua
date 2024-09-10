@@ -1,6 +1,6 @@
 local drawableSpriteStruct = require("structs.drawable_sprite")
 local gravityArrow = {}
-gravityArrow.name = "GravityHelperGV/GravityArrow"
+gravityArrow.name = "FourWayGravity/GravityArrow"
 gravityArrow.depth = 0
 gravityArrow.placements = {
   {
@@ -42,6 +42,6 @@ function gravityArrow.sprite(room, entity)
     entity.rotation = 3.141
     -- entity.color = {0, 0, 1}
   end
-  return drawableSpriteStruct.fromTexture("objects/GravityHelperGV/gravityArrow", entity)
+  return drawableSpriteStruct.fromTexture("objects/FourWayGravity/gravityArrow", entity)
 end
 return gravityArrow

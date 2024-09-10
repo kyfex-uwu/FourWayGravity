@@ -6,7 +6,7 @@ using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
 
-[CustomEntity("GravityHelperGV/GravityField")]
+[CustomEntity("FourWayGravity/GravityField")]
 public class GravityField : Entity
 {
     float time = 0;

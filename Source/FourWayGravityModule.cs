@@ -2,30 +2,30 @@
 using System.Linq;
 using Microsoft.Xna.Framework;
 
-namespace Celeste.Mod.GravityHelperGV;
+namespace Celeste.Mod.FourWayGravity;
 
-public class GravityHelperGVModule : EverestModule
+public class FourWayGravityModule : EverestModule
 {
-    public static GravityHelperGVModule Instance { get; private set; }
+    public static FourWayGravityModule Instance { get; private set; }
 
-    public override Type SettingsType => typeof(GravityHelperGVModuleSettings);
-    public static GravityHelperGVModuleSettings Settings => (GravityHelperGVModuleSettings)Instance._Settings;
+    public override Type SettingsType => typeof(FourWayGravityModuleSettings);
+    public static FourWayGravityModuleSettings Settings => (FourWayGravityModuleSettings)Instance._Settings;
 
-    public override Type SessionType => typeof(GravityHelperGVModuleSession);
-    public static GravityHelperGVModuleSession Session => (GravityHelperGVModuleSession)Instance._Session;
+    public override Type SessionType => typeof(FourWayGravityModuleSession);
+    public static FourWayGravityModuleSession Session => (FourWayGravityModuleSession)Instance._Session;
 
-    public override Type SaveDataType => typeof(GravityHelperGVModuleSaveData);
-    public static GravityHelperGVModuleSaveData SaveData => (GravityHelperGVModuleSaveData)Instance._SaveData;
+    public override Type SaveDataType => typeof(FourWayGravityModuleSaveData);
+    public static FourWayGravityModuleSaveData SaveData => (FourWayGravityModuleSaveData)Instance._SaveData;
 
-    public GravityHelperGVModule()
+    public FourWayGravityModule()
     {
         Instance = this;
 #if DEBUG
         // debug builds use verbose logging
-        Logger.SetLogLevel(nameof(GravityHelperGVModule), LogLevel.Verbose);
+        Logger.SetLogLevel(nameof(FourWayGravityModule), LogLevel.Verbose);
 #else
         // release builds use info logging to reduce spam in log files
-        Logger.SetLogLevel(nameof(GravityHelperGVModule), LogLevel.Info);
+        Logger.SetLogLevel(nameof(FourWayGravityModule), LogLevel.Info);
 #endif
     }
 
@@ -45,7 +45,7 @@ public class GravityHelperGVModule : EverestModule
     private static void LevelLoad(On.Celeste.LevelLoader.orig_ctor orig, LevelLoader self, Session session, Vector2? startPosition)
     {
         orig(self, session, startPosition);
-        if (session.MapData.Levels.Any(level => level.Entities.Any(data => data.Name == "GravityHelperGV/GravityArrow")))
+        if (session.MapData.Levels.Any(level => level.Entities.Any(data => data.Name == "FourWayGravity/GravityArrow")))
         {
             if(!hooksLoaded) {
                 hooksLoaded = true;

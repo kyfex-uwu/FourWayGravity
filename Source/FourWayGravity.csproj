@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
-        <AssemblyName>GravityHelperGV</AssemblyName>
-        <RootNamespace>Celeste.Mod.GravityHelperGV</RootNamespace>
+        <AssemblyName>FourWayGravity</AssemblyName>
+        <RootNamespace>Celeste.Mod.FourWayGravity</RootNamespace>
         <LangVersion>latest</LangVersion>
         <CelestePrefix Condition="'$(CelestePrefix)' == '' And Exists('..\..\..\Celeste.dll')">..\..\..</CelestePrefix>
         <CelestePrefix Condition="'$(CelestePrefix)' == ''">lib-stripped</CelestePrefix>
@@ -33,15 +33,15 @@
         <Copy SourceFiles="$(OutputPath)\$(AssemblyName).pdb" DestinationFolder="..\bin" />
     </Target>
 
-    <Target Name="PackageMod" AfterTargets="CopyFiles" Inputs="$(ZippedFiles)" Outputs="..\GravityHelperGV.zip" Condition="'$(Configuration)' == 'Release'">
+    <Target Name="PackageMod" AfterTargets="CopyFiles" Inputs="$(ZippedFiles)" Outputs="..\FourWayGravity.zip" Condition="'$(Configuration)' == 'Release'">
         <ItemGroup>
             <FilesToPackage Include="$(ZippedFiles)" />
         </ItemGroup>
-        <PackageMod Files="@(FilesToPackage)" OutputPath="..\GravityHelperGV.zip" />
+        <PackageMod Files="@(FilesToPackage)" OutputPath="..\FourWayGravity.zip" />
     </Target>
     
     <PropertyGroup>
-        <PathMap>$(MSBuildProjectDirectory)=GravityHelperGV/</PathMap>
+        <PathMap>$(MSBuildProjectDirectory)=FourWayGravity/</PathMap>
     </PropertyGroup>
 
     <!-- Inline task used to create a .zip for the mod -->

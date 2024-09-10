@@ -1,6 +1,6 @@
 local gravityField = {}
 
-gravityField.name = "GravityHelperGV/GravityField"
+gravityField.name = "FourWayGravity/GravityField"
 gravityField.fillColor = {209 / 255, 9 / 255, 1 / 255, 102 / 255, 100 / 255}
 
 gravityField.placements = {
