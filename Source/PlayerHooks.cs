@@ -32,6 +32,7 @@ public class PlayerHooks
         On.Celeste.Player.BoostEnd += BoostEndHook;
         On.Celeste.Player.Pickup += PickupHook;
         On.Celeste.Player.AttractUpdate += AttractUpdateHook;
+        On.Celeste.Player.WindMove += WindMoveHook;
         var stateMachineTarget = typeof(Player).GetMethod("DashCoroutine", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget();
         hook_Dash_Coroutine = new ILHook(
             stateMachineTarget,
@@ -55,11 +56,19 @@ public class PlayerHooks
         On.Celeste.Player.BoostEnd -= BoostEndHook;
         On.Celeste.Player.Pickup -= PickupHook;
         On.Celeste.Player.AttractUpdate -= AttractUpdateHook;
+        On.Celeste.Player.WindMove -= WindMoveHook;
         IL.Celeste.Player.SlipCheck -= PointCheckHook;
         IL.Celeste.Player.ClimbCheck -= PointCheckHook;
         IL.Celeste.Player.OnCollideH -= DashCollideHook;
         IL.Celeste.Player.OnCollideV -= DashCollideHook;
         IL.Celeste.Player.UpdateCarry -= UpdateCarryHook;
+    }
+
+    private static void WindMoveHook(On.Celeste.Player.orig_WindMove orig, Player self, Vector2 move)
+    {
+        Views.EntityView(self);
+        orig(self, move.RotateInv(self.Components.Get<GravityComponent>()?.gravity ?? Gravity.Down));
+        Views.Pop(self);
     }
 
     private static int AttractUpdateHook(On.Celeste.Player.orig_AttractUpdate orig, Player self)
