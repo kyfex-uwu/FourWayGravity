@@ -63,7 +63,12 @@ public class GravityEntity : Component
             var player = (Player)gravity.Entity;
             if (player.CollideCheck<Solid>())
             {
-                return false;
+                player.Ducking = true;
+                if(player.CollideCheck<Solid>()) {
+                    player.Ducking = false;
+                    return false;
+
+                }
             }
             if (player.Holding != null)
             {
