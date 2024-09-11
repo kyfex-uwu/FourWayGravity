@@ -15,6 +15,9 @@ public class HoldableHooks
         On.Celeste.Holdable.Added += HoldableAdded;
         On.Celeste.Glider.Render += JellyRenderHook;
         On.Celeste.Glider.Update += JellyUpdateHook;
+        IL.Celeste.TheoCrystal.OnCollideH += HoldableSwitchFix;
+        IL.Celeste.TheoCrystal.OnCollideV += HoldableSwitchFix;
+        IL.Celeste.Glider.OnCollideH += HoldableSwitchFix;
     }
     public static void Unload()
     {
@@ -24,6 +27,21 @@ public class HoldableHooks
         On.Celeste.Holdable.Added -= HoldableAdded;
         On.Celeste.Glider.Render -= JellyRenderHook;
         On.Celeste.Glider.Update -= JellyUpdateHook;
+        IL.Celeste.TheoCrystal.OnCollideH -= HoldableSwitchFix;
+        IL.Celeste.TheoCrystal.OnCollideV -= HoldableSwitchFix;
+        IL.Celeste.Glider.OnCollideH -= HoldableSwitchFix;
+    }
+
+    private static void HoldableSwitchFix(ILContext il)
+    {
+        var cursor = new ILCursor(il);
+        try {
+            cursor.GotoNext(i => i.MatchCallvirt<DashCollision>("Invoke"));
+            cursor.EmitLdarg0();
+            cursor.EmitRotate();
+        } catch(Exception e) {
+            Logger.Warn("4WG", $"Dash switch fix failed {e}");
+        }
     }
 
     private static void HoldableAdded(On.Celeste.Holdable.orig_Added orig, Holdable self, Entity entity)
