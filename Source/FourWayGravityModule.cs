@@ -65,7 +65,7 @@ public class FourWayGravityModule : EverestModule
 
     public static void LoadHooks()
     {
-        Logger.Info("GHGV", "Loading hooks");
+        Logger.Info("4WG", "Loading hooks");
         GravityComponent.SetHooks();
         ControlHooks.Load();
         PlayerHooks.Load();
@@ -79,7 +79,7 @@ public class FourWayGravityModule : EverestModule
     }
     public static void UnloadHooks()
     {
-        Logger.Info("GHGV", "Unloading hooks");
+        Logger.Info("4WG", "Unloading hooks");
         GravityComponent.RemoveHooks();
         ControlHooks.Unload();
         PlayerHooks.Unload();

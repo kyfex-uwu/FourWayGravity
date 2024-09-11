@@ -169,7 +169,7 @@ public class PlayerHooks
         }
         catch (Exception e)
         {
-            Logger.Warn("GHGV", $"Update hook failed {e}");
+            Logger.Warn("4WG", $"Update hook failed {e}");
         }
     }
     private static void CollideFix(Player player, Collider tmp)
@@ -273,7 +273,7 @@ public class PlayerHooks
         }
         catch (Exception e)
         {
-            Logger.Warn("GHGV", $"UpdateCarry hook failed to load {e}");
+            Logger.Warn("4WG", $"UpdateCarry hook failed to load {e}");
         }
     }
     private static Vector2 FixCarryPosition(Vector2 position, Player player)

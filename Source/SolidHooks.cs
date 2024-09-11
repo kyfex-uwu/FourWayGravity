@@ -93,7 +93,7 @@ public class SolidHooks
         }
         catch (Exception e)
         {
-            Logger.Warn("GHGV", $"GetPlayerOnTop hook failed {e}");
+            Logger.Warn("4WG", $"GetPlayerOnTop hook failed {e}");
         }
     }
     private static Vector2 CorrectOffsetClimb(Vector2 v, Player player)
@@ -121,7 +121,7 @@ public class SolidHooks
         }
         catch (Exception e)
         {
-            Logger.Warn("GHGV", $"GetPlayerClimbing hook failed: {e}");
+            Logger.Warn("4WG", $"GetPlayerClimbing hook failed: {e}");
         }
     }
 }
