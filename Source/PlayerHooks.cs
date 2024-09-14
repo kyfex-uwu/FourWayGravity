@@ -37,6 +37,7 @@ public class PlayerHooks
         hook_Dash_Coroutine = new ILHook(
             stateMachineTarget,
             DashCoroutineHook);
+        On.Celeste.Player.CassetteFlyBegin += CassetteFlyBegin;
         IL.Celeste.Player.SlipCheck += PointCheckHook;
         IL.Celeste.Player.ClimbCheck += PointCheckHook;
         IL.Celeste.Player.OnCollideH += DashCollideHook;
@@ -57,11 +58,18 @@ public class PlayerHooks
         On.Celeste.Player.Pickup -= PickupHook;
         On.Celeste.Player.AttractUpdate -= AttractUpdateHook;
         On.Celeste.Player.WindMove -= WindMoveHook;
+        On.Celeste.Player.CassetteFlyBegin -= CassetteFlyBegin;
         IL.Celeste.Player.SlipCheck -= PointCheckHook;
         IL.Celeste.Player.ClimbCheck -= PointCheckHook;
         IL.Celeste.Player.OnCollideH -= DashCollideHook;
         IL.Celeste.Player.OnCollideV -= DashCollideHook;
         IL.Celeste.Player.UpdateCarry -= UpdateCarryHook;
+    }
+
+    private static void CassetteFlyBegin(On.Celeste.Player.orig_CassetteFlyBegin orig, Player self)
+    {
+        GravityComponent.Set(self, Gravity.Down);
+        orig(self);
     }
 
     private static void WindMoveHook(On.Celeste.Player.orig_WindMove orig, Player self, Vector2 move)

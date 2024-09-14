@@ -46,9 +46,9 @@ public class MoonBlockHooks
     private static void UpdateHook(On.Celeste.FloatySpaceBlock.orig_Update orig, FloatySpaceBlock self)
     {
         orig(self);
-        if (self.sinkTimer > 0)
+        if (self.yLerp > 0)
         {
-            var player = self.Scene.Tracker.GetEntity<Player>();
+            var player = self.GetPlayerOnTop() ?? self.GetPlayerClimbing();
             if (player != null && player.Collider is TransformCollider collider)
             {
                 var sink = self.Components.Get<MultidirSink>();
@@ -57,6 +57,12 @@ public class MoonBlockHooks
                     self.Add(sink = new MultidirSink(true, false));
                 }
                 sink.targetDirection = collider.gravity.gravity.Dir();
+            }
+        } else {
+            var sink = self.Components.Get<MultidirSink>();
+            if (sink != null)
+            {
+                sink.targetDirection = Vector2.UnitY;
             }
         }
     }

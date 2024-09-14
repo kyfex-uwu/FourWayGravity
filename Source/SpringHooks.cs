@@ -10,12 +10,24 @@ public class SpringHooks
     {
         On.Celeste.Spring.OnCollide += OnCollidePlayerHook;
         On.Celeste.Spring.OnHoldable += OnCollideHoldableHook;
+        On.Celeste.Spring.BounceAnimate += OnBounceAnimate;
     }
     public static void Unload()
     {
         On.Celeste.Spring.OnCollide -= OnCollidePlayerHook;
         On.Celeste.Spring.OnHoldable -= OnCollideHoldableHook;
+        On.Celeste.Spring.BounceAnimate -= OnBounceAnimate;
     }
+    // I hate this so much
+    private static void OnBounceAnimate(On.Celeste.Spring.orig_BounceAnimate orig, Spring self)
+    {
+        if(self.Components.Get<ActualOrientation>() is {} actual) {
+            self.Orientation = actual.orientation;
+            actual.RemoveSelf();
+        }
+        orig(self);
+    }
+
     private static void OnCollidePlayerHook(On.Celeste.Spring.orig_OnCollide orig, Spring self, Player entity)
     {
         GravityArrow.ApplyArrows(self, entity);
@@ -56,6 +68,7 @@ public class SpringHooks
                 return;
             }
             self.Collider = hitbox;
+            self.Add(new ActualOrientation(orientation));
             orig(self, entity);
             self.Orientation = orientation;
             self.Collider = prevHitbox;
@@ -107,6 +120,7 @@ public class SpringHooks
                 return;
             }
             self.Collider = hitbox;
+            self.Add(new ActualOrientation(orientation));
             orig(self, holdable);
             self.Orientation = orientation;
             self.Collider = prevHitbox;
@@ -116,5 +130,13 @@ public class SpringHooks
         {
             orig(self, holdable);
         }
+    }
+}
+class ActualOrientation : Component
+{
+    public Spring.Orientations orientation;
+    public ActualOrientation(Spring.Orientations orientation) : base(false, false)
+    {
+        this.orientation = orientation;
     }
 }
