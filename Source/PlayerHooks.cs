@@ -38,8 +38,13 @@ public class PlayerHooks
             stateMachineTarget,
             DashCoroutineHook);
         On.Celeste.Player.CassetteFlyBegin += CassetteFlyBegin;
+        On.Celeste.Player.BeforeUpTransition += UpTransition;
+        On.Celeste.Player.BeforeSideTransition += SideTransition;
+        On.Celeste.Player.BeforeDownTransition += DownTransition;
+        On.Celeste.Level.NextLevel += NextLevel;
         IL.Celeste.Player.SlipCheck += PointCheckHook;
         IL.Celeste.Player.ClimbCheck += PointCheckHook;
+        IL.Celeste.Player._IsOverWater += IsOverWaterHook;
         IL.Celeste.Player.OnCollideH += DashCollideHook;
         IL.Celeste.Player.OnCollideV += DashCollideHook;
         IL.Celeste.Player.UpdateCarry += UpdateCarryHook;
@@ -59,11 +64,62 @@ public class PlayerHooks
         On.Celeste.Player.AttractUpdate -= AttractUpdateHook;
         On.Celeste.Player.WindMove -= WindMoveHook;
         On.Celeste.Player.CassetteFlyBegin -= CassetteFlyBegin;
+        On.Celeste.Player.BeforeUpTransition -= UpTransition;
+        On.Celeste.Player.BeforeSideTransition -= SideTransition;
+        On.Celeste.Player.BeforeDownTransition -= DownTransition;
+        On.Celeste.Level.NextLevel -= NextLevel;
         IL.Celeste.Player.SlipCheck -= PointCheckHook;
         IL.Celeste.Player.ClimbCheck -= PointCheckHook;
+        IL.Celeste.Player._IsOverWater -= IsOverWaterHook;
         IL.Celeste.Player.OnCollideH -= DashCollideHook;
         IL.Celeste.Player.OnCollideV -= DashCollideHook;
         IL.Celeste.Player.UpdateCarry -= UpdateCarryHook;
+    }
+
+    private static bool IsOverWaterFix(bool prev, Player player) {
+        var gravity = player.Components.Get<GravityComponent>()?.gravity ?? Gravity.Down;
+        if(gravity == Gravity.Down) {
+            return prev;
+        }
+        return player.CollideCheck<Water>(player.Position +Vector2.UnitY * 2);
+    }
+    private static void IsOverWaterHook(ILContext il)
+    {
+        // this should be an on hook but it started as an IL and i dont feel like rewriting it
+        var cursor = new ILCursor(il);
+        var method = typeof(Level)
+            .GetMethod("CollideCheck", new Type[] { typeof(Rectangle) })
+            .MakeGenericMethod(new Type[] { typeof(Water) });
+        cursor.TryGotoNext(
+            MoveType.After,
+            i => i.MatchCallvirt(method)
+        );
+        cursor.EmitLdarg0();
+        cursor.EmitDelegate(IsOverWaterFix);
+    }
+
+    private static void NextLevel(On.Celeste.Level.orig_NextLevel orig, Level self, Vector2 at, Vector2 dir)
+    {
+        GravityComponent.Set(self.Tracker.GetEntity<Player>(), Gravity.Down);
+        orig(self, at, dir);
+    }
+
+    private static void DownTransition(On.Celeste.Player.orig_BeforeDownTransition orig, Player self)
+    {
+        GravityComponent.Set(self, Gravity.Down);
+        orig(self);
+    }
+
+    private static void SideTransition(On.Celeste.Player.orig_BeforeSideTransition orig, Player self)
+    {
+        GravityComponent.Set(self, Gravity.Down);
+        orig(self);
+    }
+
+    private static void UpTransition(On.Celeste.Player.orig_BeforeUpTransition orig, Player self)
+    {
+        GravityComponent.Set(self, Gravity.Down);
+        orig(self);
     }
 
     private static void CassetteFlyBegin(On.Celeste.Player.orig_CassetteFlyBegin orig, Player self)
