@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Celeste;
 using Celeste.Mod;
+using Celeste.Mod.FourWayGravity;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod.RuntimeDetour;
@@ -20,8 +21,9 @@ public class GravityComponent : Component
     {
         this.gravity = gravity;
     }
-    public static bool Set(Entity entity, Gravity gravity)
-    {
+    public static bool Set(Entity entity, Gravity gravity) {
+        if (entity is Player) FourWayGravityModule.Session.direction = gravity;
+        
         if (entity.Components.Get<GravityEntity>() == null)
         {
             return false;

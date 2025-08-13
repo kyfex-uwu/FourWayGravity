@@ -8,14 +8,8 @@ public class FourWayGravityModule : EverestModule
 {
     public static FourWayGravityModule Instance { get; private set; }
 
-    public override Type SettingsType => typeof(FourWayGravityModuleSettings);
-    public static FourWayGravityModuleSettings Settings => (FourWayGravityModuleSettings)Instance._Settings;
-
     public override Type SessionType => typeof(FourWayGravityModuleSession);
     public static FourWayGravityModuleSession Session => (FourWayGravityModuleSession)Instance._Session;
-
-    public override Type SaveDataType => typeof(FourWayGravityModuleSaveData);
-    public static FourWayGravityModuleSaveData SaveData => (FourWayGravityModuleSaveData)Instance._SaveData;
 
     public FourWayGravityModule()
     {
@@ -45,7 +39,7 @@ public class FourWayGravityModule : EverestModule
     private static void LevelLoad(On.Celeste.LevelLoader.orig_ctor orig, LevelLoader self, Session session, Vector2? startPosition)
     {
         orig(self, session, startPosition);
-        if (session.MapData.Levels.Any(level => level.Entities.Any(data => data.Name == "FourWayGravity/GravityArrow")))
+        if (session.MapData.Levels.Any(level => level.Entities.Any(data => data.Name.StartsWith("FourWayGravity"))))
         {
             if(!hooksLoaded) {
                 hooksLoaded = true;

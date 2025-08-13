@@ -4,3 +4,5 @@ entities.FourWayGravity/GravityArrow.placements.name.arrow_left=Gravity Arrow (L
 entities.FourWayGravity/GravityArrow.placements.name.arrow_right=Gravity Arrow (Right)
 entities.FourWayGravity/GravityArrow.placements.name.arrow_up=Gravity Arrow (Up)
 entities.FourWayGravity/GravityField.placements.name.gravityField=Gravity Field
+
+triggers.FourWayGravity/ChangeGravityTrigger.placements.main=Change Gravity Trigger
